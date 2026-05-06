@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Core Models
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("member") // admin | member
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  primaryDomain String?
+  gscProperty   String? // e.g. "sc-domain:example.com" or "https://example.com"
+  status        String    @default("active") // active | archived
+  notes         String?
+  assignedTo    String? // team member email or name
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  domains Domain[]
+  reports Report[]
+
+  @@index([status])
+  @@map("clients")
+}
+
+model Domain {
+  id        String   @id @default(cuid())
+  url       String
+  notes     String?
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  keywords Keyword[]
+
+  @@index([clientId])
+  @@map("domains")
+}
+
+model Keyword {
+  id             String    @id @default(cuid())
+  term           String
+  targetPosition Int? // e.g. 3 (top 3 goal)
+  priority       String? // low | medium | high | critical
+  tags           String[] // flexible tagging (Postgres array)
+  searchVolume   Int? // optional - for future imports
+  difficulty     Int? // 0-100
+  category       String? // e.g. "informational", "commercial", "branded"
+  notes          String?
+  lastCheckedAt  DateTime?
+  domainId       String
+  domain         Domain    @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  snapshots RankingSnapshot[]
+
+  @@index([domainId])
+  @@index([term])
+  @@map("keywords")
+}
+
+model RankingSnapshot {
+  id              String   @id @default(cuid())
+  keywordId       String
+  keyword         Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  date            DateTime
+  position        Int?
+  url             String?
+  impressions     Int?
+  clicks          Int?
+  ctr             Float? // click-through rate
+  source          String // "gsc" | "serp"
+  featuredSnippet Boolean?
+  aiOverview      Boolean? // future-proof for AI Overviews
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@index([keywordId, date])
+  @@index([date])
+  @@index([source])
+  @@map("ranking_snapshots")
+}
+
+// ============================================
+// Optional but recommended for growth
+// ============================================
+
+model Report {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  periodStart DateTime
+  periodEnd   DateTime
+  fileUrl     String? // link to generated PDF/report
+  generatedBy String? // user who triggered it
+  createdAt   DateTime @default(now())
+
+  @@index([clientId, periodStart])
+  @@map("reports")
+}
