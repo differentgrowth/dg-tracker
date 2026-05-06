@@ -56,6 +56,6 @@
     }
   },
   "files": {
-    "includes": ["!**/node_modules", "!**/.agents"]
+    "includes": ["!**/node_modules", "!**/.agents", "!**/.claude/worktrees"]
   }
 }

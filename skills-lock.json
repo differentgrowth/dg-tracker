@@ -7,6 +7,12 @@
       "skillPath": "skills/authjs-skills/SKILL.md",
       "computedHash": "43ae8a1f2ddafc02ac2d4d8fc952ec73c54bc8ac3411d589091dfd81d01151cb"
     },
+    "better-auth-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/best-practices/SKILL.md",
+      "computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
