@@ -206,3 +206,15 @@ If lint/test scripts are added later, run those too.
 - Creating database schema changes without migrations.
 - Mixing domain logic into `components/ui/`.
 - Adding Client Components by default when a Server Component would work.
+
+## Ultracite Code Standards
+
+This repository uses Ultracite for automated formatting and linting. This guidance applies to Codex, OpenCode, Claude Code, and other agents that read repository instruction files.
+
+Quick commands:
+
+- `npx ultracite check` checks for issues without modifying files.
+- `npx ultracite fix` formats and auto-fixes safe issues.
+- `npx ultracite doctor` diagnoses the Ultracite setup.
+
+Write code that is accessible, performant, type-safe, and maintainable. Prefer clear names, explicit intent, semantic HTML, Server Components by default in Next.js, and `unknown` over `any` for genuinely unknown values. Do not add formatter-specific style preferences here; the configured linter owns formatting decisions.

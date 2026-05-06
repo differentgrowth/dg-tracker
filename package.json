@@ -7,9 +7,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "lint": "ultracite check",
+    "format": "ultracite fix",
+    "typecheck": "tsc --noEmit",
+    "fix": "ultracite fix",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -32,6 +34,8 @@
     "@types/react-dom": "^19.2.3",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "husky": "^9.1.7",
+    "ultracite": "^7.6.3"
   }
 }
