@@ -15,7 +15,7 @@ function toSafeRoute(target: string | null): Route {
   if (target?.startsWith("/") && !target.startsWith("//")) {
     return target as Route;
   }
-  return "/" as Route;
+  return "/dashboard" as Route;
 }
 
 export function LoginForm() {

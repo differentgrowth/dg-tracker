@@ -21,7 +21,7 @@ function safeRedirect(target: string | undefined): Route {
   if (target?.startsWith("/") && !target.startsWith("//")) {
     return target as Route;
   }
-  return "/" as Route;
+  return "/dashboard" as Route;
 }
 
 export default function LoginPage(props: LoginPageProps) {
