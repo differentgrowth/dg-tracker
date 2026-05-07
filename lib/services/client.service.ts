@@ -170,3 +170,61 @@ async function ensureClientExists(id: string) {
     throw new Error(`Client not found: ${id}`);
   }
 }
+
+export interface DashboardOverview {
+  activeClients: number;
+  archivedClients: number;
+  clients: Awaited<ReturnType<typeof getAllClients>>;
+  latestSyncAt: Date | null;
+  totalClients: number;
+  totalDomains: number;
+  totalKeywords: number;
+  totalReports: number;
+}
+
+/**
+ * Returns workspace-level counts and the client list used by the dashboard home.
+ */
+export async function getDashboardOverview(): Promise<DashboardOverview> {
+  const [clients, totalKeywords] = await Promise.all([
+    getAllClients(),
+    prisma.keyword.count(),
+  ]);
+
+  const totalDomains = clients.reduce(
+    (total, client) => total + client._count.domains,
+    0
+  );
+  const totalReports = clients.reduce(
+    (total, client) => total + client._count.reports,
+    0
+  );
+  const activeClients = clients.filter(
+    (client) => client.status === "active"
+  ).length;
+  const archivedClients = clients.filter(
+    (client) => client.status === "archived"
+  ).length;
+  const latestSyncAt = clients.reduce<Date | null>((latest, client) => {
+    if (!client.lastSyncedAt) {
+      return latest;
+    }
+
+    if (!latest || client.lastSyncedAt > latest) {
+      return client.lastSyncedAt;
+    }
+
+    return latest;
+  }, null);
+
+  return {
+    activeClients,
+    archivedClients,
+    clients,
+    latestSyncAt,
+    totalClients: clients.length,
+    totalDomains,
+    totalKeywords,
+    totalReports,
+  };
+}
