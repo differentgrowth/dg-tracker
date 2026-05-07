@@ -195,6 +195,26 @@ pnpm dlx --allow-build=@prisma/engines prisma migrate dev --name init
 pnpm dlx --allow-build=@prisma/engines prisma studio
 ```
 
+### Seed the database (development)
+
+After migrations have run, populate the database with a known admin and two sample member users so you can sign in immediately:
+
+```bash
+pnpm db:seed
+```
+
+The script is idempotent — re-running it skips users that already exist.
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `admin@local.com` | `password1234` | admin |
+| `member1@local.com` | `password1234` | member |
+| `member2@local.com` | `password1234` | member |
+
+The seed goes through Better Auth's server-side sign-up so password hashing and account records match a normal sign-up. The shared password meets the configured 12-character minimum.
+
+These are development-only credentials. Do not use them in staging or production. To provision a real user instead, use `pnpm user:create` (see `scripts/create-user.ts`).
+
 ### Run the development server
 
 ```bash

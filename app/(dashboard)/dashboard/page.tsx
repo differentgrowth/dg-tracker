@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import { RiArrowRightLine, RiPulseLine } from "@remixicon/react";
@@ -16,14 +17,11 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/auth/session";
 import { getDashboardOverview } from "@/lib/services/client.service";
 
-export default async function DashboardPage() {
-  await requireSession();
-  const overview = await getDashboardOverview();
-  const hasClients = overview.totalClients > 0;
-
+export default function DashboardPage() {
   return (
     <>
       <PageHeader
@@ -40,6 +38,20 @@ export default async function DashboardPage() {
         title="Visibility operations, ready for the first sync."
       />
 
+      <Suspense fallback={<DashboardOverviewSkeleton />}>
+        <DashboardOverview />
+      </Suspense>
+    </>
+  );
+}
+
+async function DashboardOverview() {
+  await requireSession();
+  const overview = await getDashboardOverview();
+  const hasClients = overview.totalClients > 0;
+
+  return (
+    <>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           accent="primary"
@@ -144,6 +156,23 @@ export default async function DashboardPage() {
       ) : (
         <EmptyDashboardState />
       )}
+    </>
+  );
+}
+
+function DashboardOverviewSkeleton() {
+  return (
+    <>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder list
+          <Skeleton className="h-36 w-full" key={index} />
+        ))}
+      </section>
+      <section className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
+        <Skeleton className="h-80 w-full" />
+        <Skeleton className="h-80 w-full" />
+      </section>
     </>
   );
 }
