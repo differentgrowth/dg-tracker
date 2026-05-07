@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import { RiFileChartLine } from "@remixicon/react";
@@ -12,13 +13,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/auth/session";
 import { getDashboardOverview } from "@/lib/services/client.service";
 
-export default async function ReportsPage() {
-  await requireSession();
-  const overview = await getDashboardOverview();
-
+export default function ReportsPage() {
   return (
     <>
       <PageHeader
@@ -26,23 +25,34 @@ export default async function ReportsPage() {
         eyebrow="Reports"
         title="Monthly summaries"
       />
-      <Empty className="border bg-card/95">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <RiFileChartLine aria-hidden="true" />
-          </EmptyMedia>
-          <EmptyTitle>{overview.totalReports} reports generated</EmptyTitle>
-          <EmptyDescription>
-            Reports will summarize top wins, losses, and traffic deltas once GSC
-            snapshots are syncing into the ranking history.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button render={<Link href="/clients" />} variant="outline">
-            Pick a client
-          </Button>
-        </EmptyContent>
-      </Empty>
+      <Suspense fallback={<Skeleton className="h-72 w-full" />}>
+        <ReportsEmptyState />
+      </Suspense>
     </>
+  );
+}
+
+async function ReportsEmptyState() {
+  await requireSession();
+  const overview = await getDashboardOverview();
+
+  return (
+    <Empty className="border bg-card/95">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <RiFileChartLine aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>{overview.totalReports} reports generated</EmptyTitle>
+        <EmptyDescription>
+          Reports will summarize top wins, losses, and traffic deltas once GSC
+          snapshots are syncing into the ranking history.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button render={<Link href="/clients" />} variant="outline">
+          Pick a client
+        </Button>
+      </EmptyContent>
+    </Empty>
   );
 }

@@ -1,5 +1,6 @@
 import type { Route } from "next";
 
+import { Suspense } from "react";
 import Link from "next/link";
 
 import {
@@ -85,7 +86,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <SidebarMenu>
                 {navItems.map((item) => (
                   <SidebarMenuItem key={item.href}>
-                    <DashboardNavLink {...item} />
+                    <Suspense fallback={null}>
+                      <DashboardNavLink {...item} />
+                    </Suspense>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>

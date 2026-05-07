@@ -89,6 +89,18 @@ export async function archiveClient(id: string) {
 }
 
 /**
+ * Restores an archived client by flipping the status back to active.
+ */
+export async function restoreClient(id: string) {
+  await ensureClientExists(id);
+
+  return prisma.client.update({
+    where: { id },
+    data: { status: "active" },
+  });
+}
+
+/**
  * Builds the client overview used by dashboards: domains, keyword count, and latest ranking summary.
  */
 export async function getClientOverview(id: string) {

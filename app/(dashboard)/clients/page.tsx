@@ -54,7 +54,7 @@ export default function ClientsPage({ searchParams }: ClientsPageProps) {
             Add client
           </Button>
         }
-        description="Use URL filters to keep client list state shareable. CRUD lands next; this read-only view is wired to the service layer today."
+        description="Use URL filters to keep client list state shareable. Click a client to drill into rankings and movement, or add a new one."
         eyebrow="Clients"
         title="Book of business"
       />
@@ -187,13 +187,17 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
               </EmptyMedia>
               <EmptyTitle>No clients found</EmptyTitle>
               <EmptyDescription>
-                Adjust the URL-backed filters or create the first client when
-                CRUD is enabled.
+                Adjust the URL-backed filters, or add the first client to get
+                started.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button render={<Link href="/clients" />} variant="outline">
                 Clear filters
+              </Button>
+              <Button render={<Link href="/clients/new" />}>
+                <RiAddLine aria-hidden="true" />
+                Add client
               </Button>
             </EmptyContent>
           </Empty>

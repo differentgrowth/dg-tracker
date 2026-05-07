@@ -25,6 +25,48 @@ export function createDomain(data: Prisma.DomainUncheckedCreateInput) {
 }
 
 /**
+ * Loads a single domain with its parent client, used to preload edit forms.
+ */
+export async function getDomainById(id: string) {
+  const domain = await prisma.domain.findUnique({
+    where: { id },
+    include: { client: true },
+  });
+
+  if (!domain) {
+    throw new Error(`Domain not found: ${id}`);
+  }
+
+  return domain;
+}
+
+/**
+ * Updates editable domain metadata. The clientId relation is intentionally not editable.
+ */
+export async function updateDomain(
+  id: string,
+  data: Prisma.DomainUncheckedUpdateInput
+) {
+  await ensureDomainExists(id);
+
+  return prisma.domain.update({
+    where: { id },
+    data,
+  });
+}
+
+async function ensureDomainExists(id: string) {
+  const exists = await prisma.domain.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!exists) {
+    throw new Error(`Domain not found: ${id}`);
+  }
+}
+
+/**
  * Loads a domain and its tracked keywords, including each keyword's most recent snapshot.
  */
 export async function getDomainWithKeywords(domainId: string) {

@@ -1,8 +1,12 @@
+import type { Route } from "next";
+
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RiArrowUpDownLine, RiExternalLinkLine } from "@remixicon/react";
 
+import { ArchiveClientButton } from "@/components/clients/archive-client-button";
 import {
   DataTable,
   DataTableBody,
@@ -23,6 +27,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/auth/session";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
@@ -36,10 +41,18 @@ interface ClientDetailPageProps {
 
 const movementWindows = [7, 30];
 
-export default async function ClientDetailPage({
+export default function ClientDetailPage({
   params,
   searchParams,
 }: ClientDetailPageProps) {
+  return (
+    <Suspense fallback={<ClientDetailSkeleton />}>
+      <ClientDetail params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   await requireSession();
   const { clientId } = await params;
   const { window = "30" } = await searchParams;
@@ -67,9 +80,24 @@ export default async function ClientDetailPage({
     <>
       <PageHeader
         actions={
-          <Button render={<Link href="/clients" />} variant="outline">
-            Back to clients
-          </Button>
+          <>
+            <Button render={<Link href="/clients" />} variant="ghost">
+              Back
+            </Button>
+            <Button
+              render={<Link href={`/clients/${client.id}/domains` as Route} />}
+              variant="outline"
+            >
+              Domains
+            </Button>
+            <Button
+              render={<Link href={`/clients/${client.id}/edit` as Route} />}
+              variant="outline"
+            >
+              Edit
+            </Button>
+            <ArchiveClientButton clientId={client.id} status={client.status} />
+          </>
         }
         description={
           client.gscProperty
@@ -117,7 +145,7 @@ export default async function ClientDetailPage({
                     movementWindow === days &&
                       "bg-primary text-primary-foreground"
                   )}
-                  href={`/clients/${client.id}?window=${days}`}
+                  href={`/clients/${client.id}?window=${days}` as Route}
                   key={days}
                 >
                   {days} days
@@ -206,6 +234,21 @@ export default async function ClientDetailPage({
           </CardContent>
         </Card>
       </section>
+    </>
+  );
+}
+
+function ClientDetailSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-24 w-full" />
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+          <Skeleton className="h-28 w-full" key={index} />
+        ))}
+      </section>
+      <Skeleton className="h-96 w-full" />
     </>
   );
 }
