@@ -23,6 +23,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { requireSession } from "@/lib/auth/session";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
 import { getRankingChangesForClient } from "@/lib/services/ranking.service";
@@ -39,6 +40,7 @@ export default async function ClientDetailPage({
   params,
   searchParams,
 }: ClientDetailPageProps) {
+  await requireSession();
   const { clientId } = await params;
   const { window = "30" } = await searchParams;
   const movementWindow = window === "7" ? 7 : 30;

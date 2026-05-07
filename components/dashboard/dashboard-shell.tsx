@@ -14,8 +14,7 @@ import {
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardNavLink } from "@/components/dashboard/dashboard-nav-link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { SidebarUser } from "@/components/dashboard/sidebar-user";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -35,15 +34,7 @@ import {
 
 interface DashboardShellProps {
   children: React.ReactNode;
-  user: {
-    email: string;
-    name?: string | null;
-    role?: string | null;
-  };
 }
-
-const emailSuffixPattern = /@.*/;
-const initialSeparatorPattern = /[\s._-]+/;
 
 const navItems: { href: Route; icon: React.ReactNode; label: string }[] = [
   {
@@ -68,10 +59,7 @@ const navItems: { href: Route; icon: React.ReactNode; label: string }[] = [
   },
 ];
 
-export function DashboardShell({ children, user }: DashboardShellProps) {
-  const displayName = user.name || user.email;
-  const initials = getInitials(displayName);
-
+export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <SidebarProvider>
       <Sidebar className="border-sidebar-border/80" collapsible="icon">
@@ -120,17 +108,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="border-sidebar-border border-t">
-          <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:justify-center">
-            <Avatar className="size-9 border">
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate font-medium text-sm">{displayName}</p>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{user.role || "member"}</Badge>
-              </div>
-            </div>
-          </div>
+          <SidebarUser />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
@@ -155,13 +133,4 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
       </SidebarInset>
     </SidebarProvider>
   );
-}
-
-function getInitials(value: string) {
-  const parts = value
-    .replace(emailSuffixPattern, "")
-    .split(initialSeparatorPattern)
-    .filter(Boolean);
-
-  return (parts[0]?.[0] ?? "D").concat(parts[1]?.[0] ?? "G").toUpperCase();
 }

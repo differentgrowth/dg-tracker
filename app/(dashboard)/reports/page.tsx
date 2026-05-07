@@ -12,9 +12,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { requireSession } from "@/lib/auth/session";
 import { getDashboardOverview } from "@/lib/services/client.service";
 
 export default async function ReportsPage() {
+  await requireSession();
   const overview = await getDashboardOverview();
 
   return (

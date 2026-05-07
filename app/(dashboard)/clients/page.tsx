@@ -25,6 +25,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { requireSession } from "@/lib/auth/session";
 import { getAllClients } from "@/lib/services/client.service";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ const statusTabs: { href: Route; label: string; value: string }[] = [
 ];
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
+  await requireSession();
   const { q = "", status = "all" } = await searchParams;
   const clients = await getAllClients();
   const normalizedQuery = q.trim().toLowerCase();

@@ -16,9 +16,11 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireSession } from "@/lib/auth/session";
 import { getDashboardOverview } from "@/lib/services/client.service";
 
 export default async function DashboardPage() {
+  await requireSession();
   const overview = await getDashboardOverview();
   const hasClients = overview.totalClients > 0;
 

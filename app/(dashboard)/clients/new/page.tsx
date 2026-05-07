@@ -12,8 +12,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { requireSession } from "@/lib/auth/session";
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  await requireSession();
+
   return (
     <>
       <PageHeader
