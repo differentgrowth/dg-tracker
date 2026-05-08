@@ -16,14 +16,14 @@ This is an internal agency tool, not a public SaaS product. Prefer pragmatic, ma
 
 ## Current State
 
-The repository currently contains the initial Next.js application scaffold:
+The repository currently contains the MVP foundation through Phase 4:
 
-- Next.js `16.2.4` with the App Router.
-- React `19` and TypeScript with `strict` mode enabled.
-- shadcn/ui configuration with RSC enabled and Remix Icon support.
-- Tailwind CSS v4 through `app/globals.css`.
-- Biome configuration is present, while the current npm scripts still include lint/format placeholders from the scaffold.
-- Prisma, PostgreSQL, background jobs, and domain-specific folders are planned but have not been added yet.
+- Next.js `16.2.x` with the App Router, React `19`, TypeScript strict mode, Tailwind CSS v4, and shadcn/ui.
+- Better Auth email/password login with manual internal user provisioning.
+- Prisma `7` with PostgreSQL models for users, clients, domains, keywords, ranking snapshots, reports, and Google Search Console connections.
+- Authenticated dashboard routes for clients, domains, keywords, and initial ranking views.
+- Google Search Console OAuth, encrypted token storage, property verification, typed API client, and manual sync into `RankingSnapshot.avgPosition`.
+- Node test coverage for GSC token crypto, OAuth callback handling, API client retry/refresh behavior, and sync aggregation.
 
 ## Tech Stack
 
@@ -34,7 +34,7 @@ The repository currently contains the initial Next.js application scaffold:
 | UI | React Server Components first, shadcn/ui, Tailwind CSS v4 |
 | Database | PostgreSQL, hosted on Neon |
 | ORM | Prisma as the database schema and migration source of truth |
-| Background jobs | Inngest or Trigger.dev for scheduled imports and ranking refreshes |
+| Background jobs | Vercel Cron Jobs for the MVP daily sync; job runtime deferred until needed |
 | Data sources | Google Search Console first; optional SERP APIs for non-owned or supplemental checks |
 | Deployment | Vercel for the web app, Neon Postgres for persistence |
 
@@ -56,15 +56,15 @@ Keep business rules out of React components. Components should render data and c
 Current structure:
 
 ```txt
-app/                  Next.js App Router pages, layouts, and global CSS
-components/           Shared React components
+app/                  Next.js App Router routes, layouts, Route Handlers, and global CSS
+components/           Shared and feature-level React components
 components/ui/        shadcn/ui primitives
-lib/                  Shared utilities and future service/integration code
-next.config.ts        Next.js configuration
-components.json       shadcn/ui configuration
-biome.jsonc           Biome formatting/lint configuration
-tsconfig.json         TypeScript configuration
-package.json          Scripts and dependencies
+lib/actions/          Server Actions grouped by domain
+lib/auth/             Better Auth and session helpers
+lib/integrations/     Google Search Console integration code
+lib/services/         Business workflows and domain logic
+lib/validators/       Shared validation schemas
+prisma/               Prisma schema, migrations, and seed script
 ```
 
 Expected structure as the product grows:
@@ -87,7 +87,7 @@ lib/
 prisma/
   schema.prisma       Prisma data model
   migrations/         Committed database migrations
-inngest/ or jobs/     Background and scheduled job definitions
+vercel.json           Scheduled sync cron configuration once Phase 5 starts
 ```
 
 ## Getting Started
@@ -97,7 +97,7 @@ inngest/ or jobs/     Background and scheduled job definitions
 - Node.js compatible with Next.js 16.
 - pnpm, because this repository includes `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
 - Docker and Docker Compose, for local PostgreSQL (or access to a Neon PostgreSQL database).
-- Google Cloud project and Search Console access when GSC integration work begins.
+- Google Cloud project and Search Console access for GSC integration.
 
 ### Start local database with Docker
 
@@ -141,34 +141,24 @@ Create a local environment file:
 cp .env.example .env.local
 ```
 
-`.env.example` does not exist yet; create it when the first environment variable is introduced. Expected variables will include:
+Required variables are documented in `.env.example`:
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-GOOGLE_REDIRECT_URI="http://localhost:3000/api/google/callback"
-INNGEST_EVENT_KEY=""
-INNGEST_SIGNING_KEY=""
-TRIGGER_SECRET_KEY=""
-SERP_API_KEY=""
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/dg-tracker_dev"
+BETTER_AUTH_SECRET="replace-me"
+BETTER_AUTH_URL="http://localhost:3000"
+APP_URL="http://localhost:3000"
+GOOGLE_OAUTH_CLIENT_ID=""
+GOOGLE_OAUTH_CLIENT_SECRET=""
+GOOGLE_OAUTH_REDIRECT_URI="http://localhost:3000/api/google/callback"
+GSC_TOKEN_ENCRYPTION_KEY=""
 ```
 
-Only add variables when the corresponding feature is implemented. Never commit real credentials.
+Generate `BETTER_AUTH_SECRET` and `GSC_TOKEN_ENCRYPTION_KEY` with `openssl rand -base64 32`. Never commit real credentials.
 
 ### Prisma setup
 
-Prisma has not been added to the scaffold yet. When database work starts:
-
-```bash
-pnpm add @prisma/client
-pnpm add -D prisma
-pnpm prisma init
-```
-
-After editing `prisma/schema.prisma`, create a migration:
+Prisma is installed and configured. After editing `prisma/schema.prisma`, create a migration:
 
 ```bash
 pnpm prisma migrate dev --name init
@@ -176,6 +166,20 @@ pnpm prisma generate
 ```
 
 Use migrations for all schema changes. Do not manually edit the production database to drift away from Prisma.
+
+### Google Search Console OAuth setup
+
+Create a Google Cloud OAuth client before using the GSC connection UI:
+
+1. In Google Cloud Console, create or select the project Different Growth will use for Search Console access.
+2. Configure the OAuth consent screen and add the Search Console read-only scope: `https://www.googleapis.com/auth/webmasters.readonly`.
+3. Create an OAuth Client ID with application type `Web application`.
+4. Add `http://localhost:3000/api/google/callback` as an authorized redirect URI for local development. Add the production callback URL after deployment.
+5. Copy the client ID and secret into `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`.
+6. Set `GOOGLE_OAUTH_REDIRECT_URI` to the exact callback URI registered in Google Cloud.
+7. Make sure the Google account used in the connect flow has owner, full user, or restricted user access to the client's Search Console property.
+
+GSC connections are stored in the dedicated `GscConnection` table. Access and refresh tokens are encrypted at rest with `GSC_TOKEN_ENCRYPTION_KEY`; losing or rotating that key requires reconnecting GSC properties.
 
 #### pnpm build script note
 
@@ -227,22 +231,23 @@ The app runs at `http://localhost:3000` by default.
 
 ```bash
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
-The current `lint` and `format` scripts reference scaffold defaults and may need to be aligned with Biome before relying on them.
+`npx ultracite check` runs the configured Ultracite/Biome checks without modifying files.
 
 ## Background Jobs
 
-Daily rank refreshes and import workflows should run outside the request/response path. Use Inngest or Trigger.dev for:
+Daily rank refreshes and import workflows should run outside normal page requests. The MVP plan uses Vercel Cron Jobs for:
 
 - Daily GSC syncs per client property.
 - Keyword ranking snapshots and trend calculations.
 - Backfills for newly connected client sites.
-- Report generation and scheduled delivery.
+- Report generation and scheduled delivery after MVP.
 - Retryable external API calls with rate-limit handling.
 
-Job handlers should be small orchestration layers that call `lib/services/*` functions. Keep provider-specific code isolated so the app can switch between Inngest and Trigger.dev if needed.
+Cron handlers should be small orchestration layers that call `lib/services/*` functions. Keep provider-specific code isolated so a dedicated job runtime can be introduced later if needed.
 
 ## Planned Features
 
@@ -274,7 +279,7 @@ Job handlers should be small orchestration layers that call `lib/services/*` fun
 - Run Prisma migrations during deployment or via a controlled release step before traffic depends on new columns/tables.
 - Store all secrets in Vercel environment variables.
 - Keep preview environments isolated from production GSC credentials and production client data when possible.
-- Schedule background jobs through Inngest or Trigger.dev rather than relying on long-running Node processes.
+- Schedule background work through Vercel Cron Jobs for the MVP rather than relying on long-running Node processes.
 
 ## Conventions and Gotchas
 
