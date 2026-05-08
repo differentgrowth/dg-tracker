@@ -1,6 +1,7 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { getRankingPosition } from "@/lib/ranking-position";
 
 const defaultHistoryLimit = 90;
 
@@ -77,8 +78,10 @@ export async function getRankingChangesForClient(
         orderBy: [{ date: "desc" }, { createdAt: "desc" }],
         take: 2,
         select: {
+          avgPosition: true,
           date: true,
           position: true,
+          source: true,
         },
       },
     },
@@ -90,11 +93,16 @@ export async function getRankingChangesForClient(
       id: string;
       term: string;
       domainId: string;
-      snapshots: { date: Date; position: number | null }[];
+      snapshots: {
+        avgPosition: number | null;
+        date: Date;
+        position: number | null;
+        source: string;
+      }[];
     }) => {
       const [latest, previous] = keyword.snapshots;
-      const latestPosition = latest?.position ?? null;
-      const previousPosition = previous?.position ?? null;
+      const latestPosition = getRankingPosition(latest);
+      const previousPosition = getRankingPosition(previous);
       const change =
         latestPosition === null || previousPosition === null
           ? null

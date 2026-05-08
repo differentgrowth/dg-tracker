@@ -1,6 +1,7 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { getRankingPosition } from "@/lib/ranking-position";
 
 const latestRankingLimit = 25;
 
@@ -119,6 +120,17 @@ export async function getClientOverview(id: string) {
           },
         },
       },
+      gscConnection: {
+        select: {
+          id: true,
+          googleAccountEmail: true,
+          gscSiteUrl: true,
+          scopes: true,
+          lastSyncedAt: true,
+          lastSyncError: true,
+          createdAt: true,
+        },
+      },
     },
   });
 
@@ -155,15 +167,13 @@ export async function getClientOverview(id: string) {
     }),
   ]);
 
-  const rankedKeywords = latestRankings.filter(
-    (snapshot: { position: number | null }) => snapshot.position !== null
-  ).length;
+  const rankingPositions = latestRankings
+    .map(getRankingPosition)
+    .filter((position): position is number => position !== null);
+  const rankedKeywords = rankingPositions.length;
   const averagePosition = rankedKeywords
-    ? latestRankings.reduce(
-        (total: number, snapshot: { position: number | null }) =>
-          total + (snapshot.position ?? 0),
-        0
-      ) / rankedKeywords
+    ? rankingPositions.reduce((total, position) => total + position, 0) /
+      rankedKeywords
     : null;
 
   return {

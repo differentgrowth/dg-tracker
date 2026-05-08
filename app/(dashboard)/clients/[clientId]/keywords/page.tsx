@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/auth/session";
+import { getRankingPosition } from "@/lib/ranking-position";
 import { getClientById } from "@/lib/services/client.service";
 import { getDomainsByClient } from "@/lib/services/domain.service";
 import {
@@ -107,7 +108,7 @@ async function Keywords({ params, searchParams }: KeywordsPageProps) {
     targetUrl: keyword.targetUrl,
     notes: keyword.notes,
     lastCheckedAt: keyword.lastCheckedAt,
-    latestPosition: keyword.snapshots[0]?.position ?? null,
+    latestPosition: getRankingPosition(keyword.snapshots[0]),
   }));
 
   return (

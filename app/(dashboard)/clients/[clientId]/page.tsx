@@ -17,6 +17,7 @@ import {
 } from "@/components/dashboard/data-table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { GscConnectionPanel } from "@/components/gsc/gsc-connection-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,10 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/auth/session";
+import {
+  formatRankingPosition,
+  getRankingPosition,
+} from "@/lib/ranking-position";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
 import { getRankingChangesForClient } from "@/lib/services/ranking.service";
@@ -36,7 +41,7 @@ import { cn } from "@/lib/utils";
 
 interface ClientDetailPageProps {
   params: Promise<{ clientId: string }>;
-  searchParams: Promise<{ window?: string }>;
+  searchParams: Promise<{ gsc?: string; reason?: string; window?: string }>;
 }
 
 const movementWindows = [7, 30];
@@ -53,9 +58,9 @@ export default function ClientDetailPage({
 }
 
 async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
-  await requireSession();
+  const session = await requireSession();
   const { clientId } = await params;
-  const { window = "30" } = await searchParams;
+  const { gsc, reason, window = "30" } = await searchParams;
   const movementWindow = window === "7" ? 7 : 30;
 
   const [client, keywords, rankingChanges] = await Promise.all([
@@ -69,6 +74,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   }
 
   const averagePosition = client.latestRankingsSummary.averagePosition;
+  const gscNotice = getGscNotice(gsc, reason);
   const winners = rankingChanges.filter(
     (change) => change.change !== null && change.change > 0
   );
@@ -125,7 +131,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
           accent="secondary"
           detail={`${client.latestRankingsSummary.rankedKeywords} currently ranked`}
           label="Avg position"
-          value={averagePosition ? averagePosition.toFixed(1) : "—"}
+          value={formatRankingPosition(averagePosition)}
         />
         <StatCard
           detail={`Last ${movementWindow} days`}
@@ -137,6 +143,18 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
           label="Last sync"
           value={client.lastSyncedAt ? "Synced" : "Pending"}
         />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
+        <GscConnectionPanel
+          canManageConnection={session.user.role === "admin"}
+          clientId={client.id}
+          connection={client.gscConnection}
+          gscProperty={client.gscProperty}
+          keywordCount={client.keywordCount}
+          notice={gscNotice}
+        />
+        <div className="hidden xl:block" />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
@@ -193,15 +211,16 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
                           </Badge>
                         </DataTableCell>
                         <DataTableCell>
-                          {latestSnapshot?.position
-                            ? latestSnapshot.position
-                            : "—"}
+                          {formatRankingPosition(
+                            getRankingPosition(latestSnapshot)
+                          )}
                         </DataTableCell>
                         <DataTableCell>
                           {latestSnapshot?.clicks ?? "—"}
                         </DataTableCell>
                         <DataTableCell>
-                          {latestSnapshot?.ctr
+                          {latestSnapshot?.ctr !== null &&
+                          latestSnapshot?.ctr !== undefined
                             ? `${(latestSnapshot.ctr * 100).toFixed(1)}%`
                             : "—"}
                         </DataTableCell>
@@ -310,4 +329,46 @@ function formatNullableDate(date: Date | null) {
   return date
     ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date)
     : "Not synced";
+}
+
+function getGscNotice(status: string | undefined, reason: string | undefined) {
+  if (status === "connected") {
+    return {
+      tone: "success" as const,
+      message: "Google Search Console is connected for this client.",
+    };
+  }
+
+  if (status !== "error") {
+    return null;
+  }
+
+  const messages: Record<string, string> = {
+    client_missing_property:
+      "Set a GSC property string on the client before connecting.",
+    id_token_invalid:
+      "Google identity verification failed. Restart the connection flow.",
+    id_token_missing:
+      "Google did not return identity details. Restart the connection flow.",
+    invalid_state:
+      "The Google connection request expired. Start the connection again.",
+    missing_params:
+      "Google returned an incomplete OAuth callback. Start the connection again.",
+    property_not_authorized:
+      "The selected Google account does not have access to this Search Console property.",
+    scope_missing:
+      "Google did not grant Search Console read access. Reconnect and approve the requested scope.",
+    session_mismatch:
+      "The signed-in user changed during OAuth. Start the connection again.",
+    sites_list_failed:
+      "Search Console property verification failed. Retry or check Google access.",
+    token_exchange_failed:
+      "Google token exchange failed. Retry the connection flow.",
+  };
+
+  return {
+    tone: "error" as const,
+    message:
+      messages[reason ?? ""] ?? "Google Search Console connection failed.",
+  };
 }

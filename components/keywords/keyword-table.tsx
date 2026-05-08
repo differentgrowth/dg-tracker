@@ -14,6 +14,7 @@ import { ArchiveKeywordButton } from "@/components/keywords/archive-keyword-butt
 import { KeywordEditForm } from "@/components/keywords/keyword-edit-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatRankingPosition } from "@/lib/ranking-position";
 
 export interface KeywordTableRow {
   category: string | null;
@@ -128,7 +129,9 @@ export function KeywordTable({ clientId, rows }: KeywordTableProps) {
                   </p>
                 ) : null}
               </DataTableCell>
-              <DataTableCell>{row.latestPosition ?? "—"}</DataTableCell>
+              <DataTableCell>
+                {formatRankingPosition(row.latestPosition)}
+              </DataTableCell>
               <DataTableCell>
                 {row.lastCheckedAt
                   ? new Intl.DateTimeFormat("en", {
