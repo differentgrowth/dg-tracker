@@ -122,8 +122,10 @@ model Domain {
 model Keyword {
   id             String    @id @default(cuid())
   term           String
+  targetUrl      String? // canonical URL the keyword should rank for
   targetPosition Int? // e.g. 3 (top 3 goal)
   priority       String? // low | medium | high | critical
+  status         String    @default("active") // active | archived
   tags           String[] // flexible tagging (Postgres array)
   searchVolume   Int? // optional - for future imports
   difficulty     Int? // 0-100
@@ -137,8 +139,12 @@ model Keyword {
 
   snapshots RankingSnapshot[]
 
+  @@unique([domainId, term])
   @@index([domainId])
   @@index([term])
+  @@index([status])
+  @@index([priority])
+  @@index([lastCheckedAt])
   @@map("keywords")
 }
 

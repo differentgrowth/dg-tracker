@@ -91,6 +91,12 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
               Domains
             </Button>
             <Button
+              render={<Link href={`/clients/${client.id}/keywords` as Route} />}
+              variant="outline"
+            >
+              Keywords
+            </Button>
+            <Button
               render={<Link href={`/clients/${client.id}/edit` as Route} />}
               variant="outline"
             >
@@ -212,10 +218,18 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
                   </EmptyMedia>
                   <EmptyTitle>No keywords tracked</EmptyTitle>
                   <EmptyDescription>
-                    Keyword onboarding is the Phase 3 slice after client and
-                    domain management.
+                    Pick a domain and bulk-paste keywords on the keyword
+                    onboarding page to get started.
                   </EmptyDescription>
                 </EmptyHeader>
+                <Button
+                  render={
+                    <Link href={`/clients/${client.id}/keywords` as Route} />
+                  }
+                  variant="outline"
+                >
+                  Onboard keywords
+                </Button>
               </Empty>
             )}
           </CardContent>

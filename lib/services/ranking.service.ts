@@ -63,6 +63,7 @@ export async function getRankingChangesForClient(
 
   const keywords = await prisma.keyword.findMany({
     where: {
+      status: "active",
       domain: { clientId },
     },
     select: {

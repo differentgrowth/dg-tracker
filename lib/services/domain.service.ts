@@ -10,7 +10,9 @@ export function getDomainsByClient(clientId: string) {
     where: { clientId },
     include: {
       _count: {
-        select: { keywords: true },
+        select: {
+          keywords: { where: { status: "active" } },
+        },
       },
     },
     orderBy: { url: "asc" },

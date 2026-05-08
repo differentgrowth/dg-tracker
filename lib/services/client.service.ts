@@ -36,7 +36,9 @@ export async function getClientById(id: string) {
         orderBy: { url: "asc" },
         include: {
           _count: {
-            select: { keywords: true },
+            select: {
+              keywords: { where: { status: "active" } },
+            },
           },
         },
       },
@@ -111,7 +113,9 @@ export async function getClientOverview(id: string) {
         orderBy: { url: "asc" },
         include: {
           _count: {
-            select: { keywords: true },
+            select: {
+              keywords: { where: { status: "active" } },
+            },
           },
         },
       },
@@ -125,12 +129,14 @@ export async function getClientOverview(id: string) {
   const [keywordCount, latestRankings] = await Promise.all([
     prisma.keyword.count({
       where: {
+        status: "active",
         domain: { clientId: id },
       },
     }),
     prisma.rankingSnapshot.findMany({
       where: {
         keyword: {
+          status: "active",
           domain: { clientId: id },
         },
       },
@@ -200,7 +206,7 @@ export interface DashboardOverview {
 export async function getDashboardOverview(): Promise<DashboardOverview> {
   const [clients, totalKeywords] = await Promise.all([
     getAllClients(),
-    prisma.keyword.count(),
+    prisma.keyword.count({ where: { status: "active" } }),
   ]);
 
   const totalDomains = clients.reduce(
