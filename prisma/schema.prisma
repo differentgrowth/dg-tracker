@@ -97,8 +97,9 @@ model Client {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  domains Domain[]
-  reports Report[]
+  domains       Domain[]
+  reports       Report[]
+  gscConnection GscConnection?
 
   @@index([status])
   @@map("clients")
@@ -153,7 +154,8 @@ model RankingSnapshot {
   keywordId       String
   keyword         Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
   date            DateTime
-  position        Int?
+  position        Int? // exact rank from a SERP provider
+  avgPosition     Float? // average position from GSC (preserves fractional value)
   url             String?
   impressions     Int?
   clicks          Int?
@@ -164,6 +166,7 @@ model RankingSnapshot {
   notes           String?
   createdAt       DateTime @default(now())
 
+  @@unique([keywordId, date, source])
   @@index([keywordId, date])
   @@index([date])
   @@index([source])
@@ -186,4 +189,29 @@ model Report {
 
   @@index([clientId, periodStart])
   @@map("reports")
+}
+
+// ============================================
+// Integration: Google Search Console
+// ============================================
+
+model GscConnection {
+  id                   String    @id @default(cuid())
+  clientId             String    @unique
+  client               Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  googleAccountEmail   String
+  googleAccountSubject String // Google "sub" claim — stable user id
+  gscSiteUrl           String // canonical GSC property, e.g. "sc-domain:example.com"
+  scopes               String[] // granted scopes from Google
+  accessTokenCipher    String // AES-256-GCM ciphertext (base64 iv.tag.ct)
+  refreshTokenCipher   String // AES-256-GCM ciphertext (base64 iv.tag.ct)
+  accessTokenExpiresAt DateTime
+  lastSyncedAt         DateTime?
+  lastSyncError        String?
+  connectedByUserId    String // user who completed the OAuth flow
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([googleAccountSubject])
+  @@map("gsc_connections")
 }
