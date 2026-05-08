@@ -12,6 +12,7 @@
     "lint": "biome lint",
     "prepare": "husky",
     "start": "next start",
+    "test": "node --import tsx --test",
     "typecheck": "tsc --noEmit",
     "user:create": "tsx scripts/create-user.ts",
     "db:seed": "tsx prisma/seed.ts"

@@ -22,19 +22,19 @@ If a flow cannot be reduced to those steps, it is post-MVP scope.
 Already in place:
 
 - Next.js 16 App Router scaffold with React 19, TypeScript strict, Tailwind v4, shadcn/ui.
-- Prisma schema with `User`, `Session`, `Account`, `Verification`, `Client`, `Domain`, `Keyword`, `RankingSnapshot`, `Report`. Migrations committed under `prisma/migrations/`.
+- Prisma schema with `User`, `Session`, `Account`, `Verification`, `Client`, `Domain`, `Keyword`, `RankingSnapshot`, `Report`, `GscConnection`. Migrations committed under `prisma/migrations/`.
 - Better Auth email/password login, manual user provisioning, session helpers (`getSession`, `requireSession`, `requireAdmin`).
-- `/login` route, `/dashboard` placeholder, `/` redirects based on session.
-- Service stubs in `lib/services/` for `client`, `domain`, `keyword`, `ranking`, `report`.
+- `/login`, `/dashboard`, client/domain/keyword dashboard routes, and `/` redirects based on session.
+- Services in `lib/services/` for `client`, `domain`, `keyword`, `ranking`, `report`, and GSC sync.
+- GSC OAuth, dedicated encrypted token storage, typed GSC client, OAuth callback, manual sync action, and client-page GSC controls.
+- `.env.example` with database, Better Auth, app URL, Google OAuth, and token encryption variables.
 - Local Postgres via `docker/docker-compose.yml`.
 
 Not yet in place:
 
-- GSC OAuth, token storage, or any GSC API client.
-- Background job runtime (Inngest / Trigger.dev).
-- CRUD UI for clients, domains, or keywords.
-- Ranking dashboards, charts, or reports UI.
-- `.env.example`, deployment to Vercel, Neon production database.
+- Vercel Cron Job for daily sync (`CRON_SECRET` env var).
+- Full ranking dashboards, charts, or reports UI.
+- Deployment to Vercel and Neon production database.
 - Admin tooling for user provisioning beyond manual DB inserts.
 
 ## Phase 1 — Authenticated app shell
@@ -81,19 +81,21 @@ Goal: pull first-party ranking data into `RankingSnapshot` for tracked keywords.
 - Integration client in `lib/integrations/gsc/` with typed wrappers around `searchanalytics.query` and `sites.list`.
 - Service `lib/services/gsc-sync.service.ts` that, given a client + date range, fetches rows for tracked keywords and upserts `RankingSnapshot` records (`source = "gsc"`).
 - Idempotency: unique constraint or upsert key on `(keywordId, date, source)` — add a migration if missing.
-- Manual "Sync now" button on a client page that calls a Server Action which enqueues a job.
+- Manual "Sync now" button on a client page that calls a Server Action inline for Phase 4. Phase 5 replaces this with scheduled cron orchestration.
 
 Exit criteria: clicking "Sync now" on a real client property writes ranking snapshots to the database that match what Search Console shows.
 
-## Phase 5 — Background jobs
+## Phase 5 — Scheduled sync via Vercel Cron Jobs
 
 Goal: scheduled syncs run without anyone clicking a button.
 
-- Pick Inngest or Trigger.dev (one decision, document it). Add the runtime endpoint under `app/api/`.
-- Daily scheduled job that iterates active clients with a connected GSC property and calls `gsc-sync.service.ts`.
-- Per-client backfill job for the first N days of history when a property is first connected.
-- Job-side retry/rate-limit handling; jobs orchestrate, services do the work.
+- Define a `cron` entry in `vercel.json` pointing a Route Handler at `app/api/cron/daily-sync/route.ts`. Schedule: daily.
+- The Route Handler receives the cron trigger, verifies the `CRON_SECRET` header, iterates active clients with a connected GSC property, and calls `gsc-sync.service.ts` for each.
+- Per-client backfill: a separate on-demand Server Action that calls the same service for a configurable lookback window (triggered once when a property is first connected).
+- No separate job runtime (Inngest / Trigger.dev). Rate-limiting and retries are handled by the service layer (idempotent upsert + simple retry loop for transient GSC errors).
 - Status surfaced on the client page: `lastSyncedAt`, last error if any.
+
+**Why Vercel Cron Jobs:** avoids adding a background job dependency for a single daily task. The sync is idempotent and short-lived per client (< 5 s for typical keyword volumes), so Vercel's 60 s timeout on cron invocations is sufficient. If complexity grows, a job runtime can be introduced post-MVP without changing the service layer.
 
 Exit criteria: a daily cron runs unattended for at least 3 days against a real client and produces fresh snapshots without duplicates.
 
@@ -141,7 +143,7 @@ These are explicitly deferred so MVP scope stays tight:
 
 These need a call before or during the relevant phase:
 
-- Inngest vs Trigger.dev for jobs.
-- Where to store GSC OAuth tokens — extend Better Auth's `Account` table or add a dedicated `GscConnection` model.
-- Keyword scoping: per-domain (current schema) vs per-client with optional domain — confirm before Phase 3 UI is built.
-- Snapshot uniqueness key: `(keywordId, date, source)` is the assumed shape; confirm during Phase 4.
+- ~~Inngest vs Trigger.dev for jobs.~~ **Decided: Vercel Cron Jobs** (see Phase 5).
+- ~~Where to store GSC OAuth tokens — extend Better Auth's `Account` table or add a dedicated table.~~ **Decided: dedicated `GscConnection` model.**
+- ~~Keyword scoping: per-domain vs per-client with optional domain.~~ **Decided: per-domain.**
+- ~~Snapshot uniqueness key: `(keywordId, date, source)` is the assumed shape.~~ **Decided and implemented.**
