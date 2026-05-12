@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth/session";
 import { redactError } from "@/lib/errors";
 import { getGscSyncErrorMessage } from "@/lib/integrations/gsc/errors";
+import { syncGscPerformanceSnapshots } from "@/lib/services/gsc-performance-snapshot.service";
 import { syncGscPropertyForClient } from "@/lib/services/gsc-sync.service";
 import { syncGscSchema } from "@/lib/validators/gsc";
 
@@ -28,6 +29,12 @@ export async function syncGscNowAction(
   startDate.setUTCDate(endDate.getUTCDate() - parsed.data.days);
 
   try {
+    await syncGscPerformanceSnapshots({
+      clientId: parsed.data.clientId,
+      startDate,
+      endDate,
+      triggeredBy: "manual",
+    });
     await syncGscPropertyForClient({
       clientId: parsed.data.clientId,
       startDate,

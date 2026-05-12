@@ -14,6 +14,7 @@ process.env.GSC_TOKEN_ENCRYPTION_KEY ??= Buffer.alloc(32, 9).toString("base64");
 
 const {
   clampScheduledGscSyncDays,
+  runScheduledGscPerformanceSnapshotSync,
   runScheduledGscSync,
   scheduledGscSyncDefaultDays,
   scheduledGscSyncMaxDays,
@@ -119,6 +120,83 @@ test("runScheduledGscSync syncs each eligible domain and reports partial failure
       domainId: "domain-2",
       error: "GSC quota exhausted",
       scheduledSyncDays: 7,
+      snapshotsUpserted: 0,
+      status: "error",
+    },
+  ]);
+});
+
+test("runScheduledGscPerformanceSnapshotSync syncs active connected clients without keywords", async () => {
+  const now = new Date("2026-05-12T05:00:00.000Z");
+  let findManyArgs: unknown;
+  const syncCalls: unknown[] = [];
+  const db = {
+    client: {
+      findMany: (args: unknown) => {
+        findManyArgs = args;
+        return Promise.resolve([{ id: "client-1" }, { id: "client-2" }]);
+      },
+    },
+  };
+
+  const result = await runScheduledGscPerformanceSnapshotSync(
+    { now: () => now },
+    {
+      db: db as never,
+      syncGscPerformanceSnapshots: (input) => {
+        syncCalls.push(input);
+        if (input.clientId === "client-2") {
+          throw new Error("GSC quota exhausted");
+        }
+        return Promise.resolve({
+          clientId: input.clientId,
+          dataState: "all",
+          finishedAt: now,
+          rowsFetched: 1,
+          searchType: "web",
+          siteUrl: "sc-domain:example.com",
+          snapshotsUpserted: 1,
+          startedAt: now,
+        });
+      },
+    }
+  );
+
+  assert.deepEqual(findManyArgs, {
+    where: {
+      status: "active",
+      gscConnection: { isNot: null },
+    },
+    select: { id: true },
+    orderBy: { name: "asc" },
+  });
+  assert.deepEqual(syncCalls, [
+    {
+      clientId: "client-1",
+      startDate: new Date("2026-05-11T05:00:00.000Z"),
+      endDate: now,
+      triggeredBy: "scheduled",
+    },
+    {
+      clientId: "client-2",
+      startDate: new Date("2026-05-11T05:00:00.000Z"),
+      endDate: now,
+      triggeredBy: "scheduled",
+    },
+  ]);
+  assert.equal(result.clientCount, 2);
+  assert.equal(result.succeededClientCount, 1);
+  assert.equal(result.failedClientCount, 1);
+  assert.equal(result.totalSnapshotsUpserted, 1);
+  assert.deepEqual(result.results, [
+    {
+      clientId: "client-1",
+      snapshotsUpserted: 1,
+      status: "success",
+    },
+    {
+      clientId: "client-2",
+      error: "GSC quota exhausted",
       snapshotsUpserted: 0,
       status: "error",
     },

@@ -79,6 +79,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   }
 
   const averagePosition = client.latestRankingsSummary.averagePosition;
+  const latestPerformance = client.latestPerformanceSnapshot;
   const gscNotice = getGscNotice(gsc, reason);
   const winners = rankingChanges.filter(
     (change) => change.change !== null && change.change > 0
@@ -150,6 +151,36 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
           detail={formatNullableDate(client.lastSyncedAt)}
           label="Last sync"
           value={client.lastSyncedAt ? "Synced" : "Pending"}
+        />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <StatCard
+          accent="primary"
+          detail={formatSnapshotDate(latestPerformance?.date)}
+          label="GSC clicks"
+          value={formatWholeNumber(latestPerformance?.clicks)}
+        />
+        <StatCard
+          detail="Site-wide Search Analytics"
+          label="GSC impressions"
+          value={formatWholeNumber(latestPerformance?.impressions)}
+        />
+        <StatCard
+          detail="Property-level CTR"
+          label="GSC CTR"
+          value={formatPercent(latestPerformance?.ctr)}
+        />
+        <StatCard
+          detail="GSC average position"
+          label="GSC position"
+          value={formatDecimal(latestPerformance?.avgPosition)}
+        />
+        <StatCard
+          accent="secondary"
+          detail="Derived from traffic, CTR, and position"
+          label="GSC score"
+          value={formatDecimal(latestPerformance?.score)}
         />
       </section>
 
@@ -345,6 +376,26 @@ function formatNullableDate(date: Date | null) {
   return date
     ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date)
     : "Not synced";
+}
+
+function formatSnapshotDate(date: Date | undefined) {
+  return date
+    ? `Snapshot for ${new Intl.DateTimeFormat("en", {
+        dateStyle: "medium",
+      }).format(date)}`
+    : "No site-wide snapshot yet";
+}
+
+function formatWholeNumber(value: number | undefined) {
+  return value === undefined ? "—" : value.toLocaleString("en");
+}
+
+function formatPercent(value: number | undefined) {
+  return value === undefined ? "—" : `${(value * 100).toFixed(1)}%`;
+}
+
+function formatDecimal(value: number | undefined) {
+  return value === undefined ? "—" : value.toFixed(1);
 }
 
 function getGscNotice(status: string | undefined, reason: string | undefined) {

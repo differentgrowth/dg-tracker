@@ -144,34 +144,39 @@ export async function getClientOverview(id: string) {
     throw new Error(`Client not found: ${id}`);
   }
 
-  const [keywordCount, latestRankings] = await Promise.all([
-    prisma.keyword.count({
-      where: {
-        status: "active",
-        domain: { clientId: id },
-      },
-    }),
-    prisma.rankingSnapshot.findMany({
-      where: {
-        keyword: {
+  const [keywordCount, latestRankings, latestPerformanceSnapshot] =
+    await Promise.all([
+      prisma.keyword.count({
+        where: {
           status: "active",
           domain: { clientId: id },
         },
-      },
-      include: {
-        keyword: {
-          select: {
-            id: true,
-            term: true,
-            domainId: true,
+      }),
+      prisma.rankingSnapshot.findMany({
+        where: {
+          keyword: {
+            status: "active",
+            domain: { clientId: id },
           },
         },
-      },
-      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-      distinct: ["keywordId"],
-      take: latestRankingLimit,
-    }),
-  ]);
+        include: {
+          keyword: {
+            select: {
+              id: true,
+              term: true,
+              domainId: true,
+            },
+          },
+        },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        distinct: ["keywordId"],
+        take: latestRankingLimit,
+      }),
+      prisma.gscPerformanceSnapshot.findFirst({
+        where: { clientId: id, searchType: "web", dataState: "all" },
+        orderBy: [{ date: "desc" }, { updatedAt: "desc" }],
+      }),
+    ]);
 
   const rankingPositions = latestRankings
     .map(getRankingPosition)
@@ -185,6 +190,7 @@ export async function getClientOverview(id: string) {
   return {
     ...client,
     keywordCount,
+    latestPerformanceSnapshot,
     latestRankingsSummary: {
       totalLatestRankings: latestRankings.length,
       rankedKeywords,
