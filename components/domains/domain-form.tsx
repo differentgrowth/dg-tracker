@@ -13,6 +13,7 @@ import { idleState } from "@/lib/actions/types";
 
 interface DomainFormDefaults {
   notes?: string | null;
+  scheduledSyncDays?: number | null;
   url?: string | null;
 }
 
@@ -92,6 +93,29 @@ export function DomainForm(props: DomainFormProps) {
         />
         {fieldError("url") ? (
           <p className="text-destructive text-sm">{fieldError("url")}</p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`${props.mode}-scheduledSyncDays`}>
+          Scheduled sync lookback days
+        </Label>
+        <Input
+          defaultValue={defaults.scheduledSyncDays ?? 1}
+          id={`${props.mode}-scheduledSyncDays`}
+          max={7}
+          min={1}
+          name="scheduledSyncDays"
+          type="number"
+        />
+        <p className="text-muted-foreground text-sm">
+          Daily cron jobs sync this many trailing days for this domain. Use 1
+          for normal runs; max 7 for domains where GSC data arrives late.
+        </p>
+        {fieldError("scheduledSyncDays") ? (
+          <p className="text-destructive text-sm">
+            {fieldError("scheduledSyncDays")}
+          </p>
         ) : null}
       </div>
 

@@ -16,10 +16,6 @@ const envSchema = z.object({
     emptyStringToUndefined,
     z.string().min(16).optional()
   ),
-  GSC_SCHEDULED_SYNC_DAYS: z.preprocess(
-    emptyStringToUndefined,
-    z.coerce.number().int().min(1).max(7).default(1)
-  ),
 });
 
 export type Env = z.infer<typeof envSchema>;

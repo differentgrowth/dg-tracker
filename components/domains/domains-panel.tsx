@@ -22,6 +22,7 @@ interface DomainRow {
   id: string;
   keywordCount: number;
   notes: string | null;
+  scheduledSyncDays: number;
   url: string;
 }
 
@@ -72,7 +73,11 @@ export function DomainsPanel({ clientId, domains }: DomainsPanelProps) {
                   {editingId === domain.id ? (
                     <DomainForm
                       clientId={clientId}
-                      defaults={{ url: domain.url, notes: domain.notes }}
+                      defaults={{
+                        url: domain.url,
+                        notes: domain.notes,
+                        scheduledSyncDays: domain.scheduledSyncDays,
+                      }}
                       domainId={domain.id}
                       mode="edit"
                       onDone={() => setEditingId(null)}
@@ -82,7 +87,10 @@ export function DomainsPanel({ clientId, domains }: DomainsPanelProps) {
                       <div className="min-w-0">
                         <p className="truncate font-medium">{domain.url}</p>
                         <p className="text-muted-foreground text-xs">
-                          {domain.keywordCount} keywords
+                          {domain.keywordCount} keywords · syncs{" "}
+                          {domain.scheduledSyncDays}
+                          trailing day
+                          {domain.scheduledSyncDays === 1 ? "" : "s"}
                           {domain.notes ? ` · ${domain.notes}` : ""}
                         </p>
                       </div>

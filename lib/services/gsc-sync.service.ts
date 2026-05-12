@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 
 export interface GscSyncOptions {
   clientId: string;
+  domainId?: string;
   endDate: Date;
   startDate: Date;
   triggeredBy: "manual" | "scheduled";
@@ -274,7 +275,10 @@ export async function syncGscPropertyForClient(
   const keywords = await db.keyword.findMany({
     where: {
       status: "active",
-      domain: { clientId: opts.clientId },
+      domain: {
+        clientId: opts.clientId,
+        ...(opts.domainId ? { id: opts.domainId } : {}),
+      },
     },
     select: { id: true, term: true, targetUrl: true, domainId: true },
   });

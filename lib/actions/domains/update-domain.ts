@@ -21,6 +21,7 @@ export async function updateDomainAction(
   const parsed = domainUpdateSchema.safeParse({
     url: formData.get("url") ?? "",
     notes: formData.get("notes") ?? "",
+    scheduledSyncDays: formData.get("scheduledSyncDays") ?? "1",
   });
 
   if (!parsed.success) {

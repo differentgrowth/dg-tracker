@@ -119,7 +119,7 @@ test("aggregateRows filters by targetUrl and counts unmatched queries once", () 
   assert.equal(inputs[0].url, "https://example.com/services/");
 });
 
-test("syncGscPropertyForClient uses idempotent keyword/date/source upserts", async () => {
+test("syncGscPropertyForClient filters scheduled syncs to one domain and uses idempotent upserts", async () => {
   const now = new Date("2026-05-08T12:00:00.000Z");
   const connection = {
     id: "connection-1",
@@ -127,21 +127,24 @@ test("syncGscPropertyForClient uses idempotent keyword/date/source upserts", asy
     gscSiteUrl: "sc-domain:example.com",
   } as GscConnection;
   const upsertCalls: unknown[] = [];
+  let keywordFindManyArgs: unknown;
   const db = {
     gscConnection: {
       findUnique: () => Promise.resolve(connection),
       update: () => Promise.resolve(connection),
     },
     keyword: {
-      findMany: () =>
-        Promise.resolve([
+      findMany: (args: unknown) => {
+        keywordFindManyArgs = args;
+        return Promise.resolve([
           {
             id: "keyword-1",
             term: "seo agency",
             targetUrl: null,
             domainId: "domain-1",
           },
-        ]),
+        ]);
+      },
       updateMany: () => Promise.resolve({ count: 1 }),
     },
     client: {
@@ -166,6 +169,7 @@ test("syncGscPropertyForClient uses idempotent keyword/date/source upserts", asy
   const result = await syncGscPropertyForClient(
     {
       clientId: "client-1",
+      domainId: "domain-1",
       startDate: new Date("2026-05-01T00:00:00.000Z"),
       endDate: new Date("2026-05-08T00:00:00.000Z"),
       triggeredBy: "manual",
@@ -173,6 +177,13 @@ test("syncGscPropertyForClient uses idempotent keyword/date/source upserts", asy
     { createGscClient, db: db as never, now: () => now }
   );
 
+  assert.deepEqual(keywordFindManyArgs, {
+    where: {
+      status: "active",
+      domain: { clientId: "client-1", id: "domain-1" },
+    },
+    select: { id: true, term: true, targetUrl: true, domainId: true },
+  });
   assert.equal(result.rowsFetched, 2);
   assert.equal(result.snapshotsUpserted, 1);
   assert.equal(upsertCalls.length, 1);

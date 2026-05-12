@@ -13,20 +13,23 @@ process.env.GOOGLE_OAUTH_REDIRECT_URI ??=
 process.env.GSC_TOKEN_ENCRYPTION_KEY ??= Buffer.alloc(32, 9).toString("base64");
 
 const {
-  parseScheduledGscSyncDays,
+  clampScheduledGscSyncDays,
   scheduledGscSyncDefaultDays,
   scheduledGscSyncMaxDays,
   scheduledGscSyncMinDays,
 } = await import("@/lib/services/scheduled-gsc-sync.service");
 
-test("scheduled GSC sync defaults to a one-day lookback for routine daily jobs", () => {
-  assert.equal(parseScheduledGscSyncDays(null), scheduledGscSyncDefaultDays);
+test("scheduled GSC sync defaults to a one-day lookback for invalid domain settings", () => {
+  assert.equal(
+    clampScheduledGscSyncDays(Number.NaN),
+    scheduledGscSyncDefaultDays
+  );
   assert.equal(scheduledGscSyncDefaultDays, 1);
 });
 
-test("scheduled GSC sync caps lookback days to prevent accidental backfills", () => {
-  assert.equal(parseScheduledGscSyncDays("0"), scheduledGscSyncMinDays);
-  assert.equal(parseScheduledGscSyncDays("3"), 3);
-  assert.equal(parseScheduledGscSyncDays("99"), scheduledGscSyncMaxDays);
+test("scheduled GSC sync caps per-domain lookback days to prevent accidental backfills", () => {
+  assert.equal(clampScheduledGscSyncDays(0), scheduledGscSyncMinDays);
+  assert.equal(clampScheduledGscSyncDays(3), 3);
+  assert.equal(clampScheduledGscSyncDays(99), scheduledGscSyncMaxDays);
   assert.equal(scheduledGscSyncMaxDays, 7);
 });

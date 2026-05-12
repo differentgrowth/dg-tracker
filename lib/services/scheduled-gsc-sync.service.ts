@@ -6,29 +6,29 @@ export const scheduledGscSyncMaxDays = 7;
 export const scheduledGscSyncDefaultDays = 1;
 
 export interface ScheduledGscSyncOptions {
-  days?: number;
   now?: () => Date;
 }
 
-export interface ScheduledGscSyncClientResult {
+export interface ScheduledGscSyncDomainResult {
   clientId: string;
+  domainId: string;
   error?: string;
+  scheduledSyncDays: number;
   snapshotsUpserted: number;
   status: "success" | "error";
 }
 
 export interface ScheduledGscSyncResult {
-  clientCount: number;
-  days: number;
-  failedClientCount: number;
+  domainCount: number;
+  failedDomainCount: number;
   finishedAt: Date;
-  results: ScheduledGscSyncClientResult[];
+  results: ScheduledGscSyncDomainResult[];
   startedAt: Date;
-  succeededClientCount: number;
+  succeededDomainCount: number;
   totalSnapshotsUpserted: number;
 }
 
-function clampScheduledGscSyncDays(days: number): number {
+export function clampScheduledGscSyncDays(days: number): number {
   if (!Number.isFinite(days)) {
     return scheduledGscSyncDefaultDays;
   }
@@ -39,14 +39,6 @@ function clampScheduledGscSyncDays(days: number): number {
   );
 }
 
-export function parseScheduledGscSyncDays(value: string | null | undefined) {
-  if (!value) {
-    return scheduledGscSyncDefaultDays;
-  }
-
-  return clampScheduledGscSyncDays(Number(value));
-}
-
 function getErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
@@ -54,70 +46,84 @@ function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Runs the MVP scheduled GSC sync for every active client with a connected
- * Search Console property. Each client sync is already idempotent because
- * snapshots are upserted by (keywordId, date, source).
+ * Runs the MVP scheduled GSC sync for every active domain whose client has a
+ * connected Search Console property. Each domain controls its own trailing
+ * lookback window while each keyword/date/source snapshot remains idempotent.
  */
 export async function runScheduledGscSync(
   opts: ScheduledGscSyncOptions = {}
 ): Promise<ScheduledGscSyncResult> {
-  const days = clampScheduledGscSyncDays(
-    opts.days ?? parseScheduledGscSyncDays(process.env.GSC_SCHEDULED_SYNC_DAYS)
-  );
   const now = opts.now ?? (() => new Date());
   const startedAt = now();
-  const endDate = new Date(startedAt);
-  const startDate = new Date(startedAt);
-  startDate.setUTCDate(endDate.getUTCDate() - days);
 
-  const connections = await prisma.gscConnection.findMany({
-    where: { client: { status: "active" } },
-    select: { clientId: true },
-    orderBy: { client: { name: "asc" } },
+  const domains = await prisma.domain.findMany({
+    where: {
+      client: {
+        status: "active",
+        gscConnection: { isNot: null },
+      },
+    },
+    select: {
+      clientId: true,
+      id: true,
+      scheduledSyncDays: true,
+    },
+    orderBy: [{ client: { name: "asc" } }, { url: "asc" }],
   });
 
-  const results: ScheduledGscSyncClientResult[] = [];
+  const results: ScheduledGscSyncDomainResult[] = [];
 
-  for (const connection of connections) {
+  for (const domain of domains) {
+    const scheduledSyncDays = clampScheduledGscSyncDays(
+      domain.scheduledSyncDays
+    );
+    const endDate = new Date(startedAt);
+    const startDate = new Date(startedAt);
+    startDate.setUTCDate(endDate.getUTCDate() - scheduledSyncDays);
+
     try {
       const result = await syncGscPropertyForClient({
-        clientId: connection.clientId,
+        clientId: domain.clientId,
+        domainId: domain.id,
         startDate,
         endDate,
         triggeredBy: "scheduled",
       });
       results.push({
-        clientId: connection.clientId,
-        status: "success",
+        clientId: domain.clientId,
+        domainId: domain.id,
+        scheduledSyncDays,
         snapshotsUpserted: result.snapshotsUpserted,
+        status: "success",
       });
     } catch (error) {
       results.push({
-        clientId: connection.clientId,
-        status: "error",
-        snapshotsUpserted: 0,
+        clientId: domain.clientId,
+        domainId: domain.id,
         error: getErrorMessage(error),
+        scheduledSyncDays,
+        snapshotsUpserted: 0,
+        status: "error",
       });
     }
   }
 
-  const succeededClientCount = results.filter(
+  const succeededDomainCount = results.filter(
     (result) => result.status === "success"
   ).length;
-  const failedClientCount = results.length - succeededClientCount;
+  const failedDomainCount = results.length - succeededDomainCount;
   const totalSnapshotsUpserted = results.reduce(
     (total, result) => total + result.snapshotsUpserted,
     0
   );
 
   return {
-    clientCount: connections.length,
-    days,
-    failedClientCount,
+    domainCount: domains.length,
+    failedDomainCount,
     finishedAt: now(),
     results,
     startedAt,
-    succeededClientCount,
+    succeededDomainCount,
     totalSnapshotsUpserted,
   };
 }

@@ -2,10 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { NextResponse } from "next/server";
 
-import {
-  parseScheduledGscSyncDays,
-  runScheduledGscSync,
-} from "@/lib/services/scheduled-gsc-sync.service";
+import { runScheduledGscSync } from "@/lib/services/scheduled-gsc-sync.service";
 
 function isAuthorized(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
@@ -21,10 +18,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const days = parseScheduledGscSyncDays(searchParams.get("days"));
-  const result = await runScheduledGscSync({ days });
-  const status = result.failedClientCount > 0 ? 207 : 200;
+  const result = await runScheduledGscSync();
+  const status = result.failedDomainCount > 0 ? 207 : 200;
 
   return NextResponse.json(result, { status });
 }
