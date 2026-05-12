@@ -16,14 +16,15 @@ This is an internal agency tool, not a public SaaS product. Prefer pragmatic, ma
 
 ## Current State
 
-The repository currently contains the MVP foundation through Phase 4:
+The repository currently contains the MVP foundation through Phase 5:
 
 - Next.js `16.2.x` with the App Router, React `19`, TypeScript strict mode, Tailwind CSS v4, and shadcn/ui.
 - Better Auth email/password login with manual internal user provisioning.
 - Prisma `7` with PostgreSQL models for users, clients, domains, keywords, ranking snapshots, reports, and Google Search Console connections.
-- Authenticated dashboard routes for clients, domains, keywords, and initial ranking views.
-- Google Search Console OAuth, encrypted token storage, property verification, typed API client, and manual sync into `RankingSnapshot.avgPosition`.
-- Node test coverage for GSC token crypto, OAuth callback handling, API client retry/refresh behavior, and sync aggregation.
+- Authenticated dashboard routes for clients, domains, keywords, ranking snapshots, and keyword ranking trend charts.
+- Google Search Console OAuth, encrypted token storage, property verification, typed API client, and manual or scheduled sync into `RankingSnapshot.avgPosition`.
+- Vercel Cron configuration for daily GSC syncs with per-domain lookback windows.
+- Node test coverage for GSC token crypto, OAuth callback handling, API client retry/refresh behavior, sync aggregation, and scheduled sync safety.
 
 ## Tech Stack
 
@@ -264,6 +265,7 @@ Each domain controls its scheduled sync lookback with `Domain.scheduledSyncDays`
 - **Dashboards**: client overview, ranking movement, winners/losers, opportunity keywords, and health checks.
 - **Reporting**: internal views first, then client-ready recurring report exports.
 - **Optional SERP APIs**: supplemental rank checks for keywords or competitors that GSC cannot cover.
+- **Next after keyword charts — global site performance indicator (Option B)**: store true site-wide GSC performance snapshots per domain with `clicks`, `impressions`, `ctr`, `avgPosition`, a derived internal score, and a timestamp so dashboards can compare overall organic visibility over time.
 
 ## Adding New Features
 
