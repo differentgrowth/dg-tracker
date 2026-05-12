@@ -8,9 +8,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { KEYWORD_PRIORITIES } from "@/lib/validators/keyword";
 
 interface KeywordFiltersProps {
@@ -75,95 +79,153 @@ export function KeywordFilters({
     >
       <div className="flex flex-col gap-2">
         <Label htmlFor="filter-domain">Domain</Label>
-        <NativeSelect
-          className="w-full"
+        <Select
           defaultValue={initial.domainId}
           id="filter-domain"
+          items={[
+            { label: "All domains", value: "" },
+            ...domains.map((domain) => ({
+              label: domain.url,
+              value: domain.id,
+            })),
+          ]}
           key={`domain-${initial.domainId}`}
           name="domainId"
-          onChange={(event) => setParam("domain", event.currentTarget.value)}
+          onValueChange={(value: string | null) =>
+            setParam("domain", value ?? "")
+          }
         >
-          <NativeSelectOption value="">All domains</NativeSelectOption>
-          {domains.map((domain) => (
-            <NativeSelectOption key={domain.id} value={domain.id}>
-              {domain.url}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="">All domains</SelectItem>
+              {domains.map((domain) => (
+                <SelectItem key={domain.id} value={domain.id}>
+                  {domain.url}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="filter-priority">Priority</Label>
-        <NativeSelect
-          className="w-full"
+        <Select
           defaultValue={initial.priority}
           id="filter-priority"
+          items={[
+            { label: "Any priority", value: "" },
+            ...KEYWORD_PRIORITIES.map((priority) => ({
+              label: priority,
+              value: priority,
+            })),
+          ]}
           key={`priority-${initial.priority}`}
           name="priority"
-          onChange={(event) => setParam("priority", event.currentTarget.value)}
+          onValueChange={(value: string | null) =>
+            setParam("priority", value ?? "")
+          }
         >
-          <NativeSelectOption value="">Any priority</NativeSelectOption>
-          {KEYWORD_PRIORITIES.map((priority) => (
-            <NativeSelectOption key={priority} value={priority}>
-              {priority}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="">Any priority</SelectItem>
+              {KEYWORD_PRIORITIES.map((priority) => (
+                <SelectItem key={priority} value={priority}>
+                  {priority}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="filter-tag">Tag</Label>
-        <NativeSelect
-          className="w-full"
+        <Select
           defaultValue={initial.tag}
           id="filter-tag"
+          items={[
+            { label: "Any tag", value: "" },
+            ...tags.map((tag) => ({ label: tag, value: tag })),
+          ]}
           key={`tag-${initial.tag}`}
           name="tag"
-          onChange={(event) => setParam("tag", event.currentTarget.value)}
+          onValueChange={(value: string | null) => setParam("tag", value ?? "")}
         >
-          <NativeSelectOption value="">Any tag</NativeSelectOption>
-          {tags.map((tag) => (
-            <NativeSelectOption key={tag} value={tag}>
-              {tag}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="">Any tag</SelectItem>
+              {tags.map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="filter-stale">Last checked</Label>
-        <NativeSelect
-          className="w-full"
+        <Select
           defaultValue={initial.stale}
           id="filter-stale"
+          items={STALE_OPTIONS}
           key={`stale-${initial.stale}`}
           name="stale"
-          onChange={(event) => setParam("stale", event.currentTarget.value)}
+          onValueChange={(value: string | null) =>
+            setParam("stale", value ?? "")
+          }
         >
-          {STALE_OPTIONS.map((option) => (
-            <NativeSelectOption key={option.value} value={option.value}>
-              {option.label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {STALE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="filter-status">Status</Label>
-        <NativeSelect
-          className="w-full"
+        <Select
           defaultValue={initial.status}
           id="filter-status"
+          items={STATUS_OPTIONS}
           key={`status-${initial.status}`}
           name="status"
-          onChange={(event) => setParam("status", event.currentTarget.value)}
+          onValueChange={(value: string | null) =>
+            setParam("status", value ?? "")
+          }
         >
-          {STATUS_OPTIONS.map((option) => (
-            <NativeSelectOption key={option.value} value={option.value}>
-              {option.label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex justify-end md:col-span-2 xl:col-span-5">

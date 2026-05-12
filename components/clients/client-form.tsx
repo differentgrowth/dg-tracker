@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createClientAction } from "@/lib/actions/clients/create-client";
 import { updateClientAction } from "@/lib/actions/clients/update-client";
@@ -94,17 +98,25 @@ export function ClientForm(props: ClientFormProps) {
         />
         <div className="flex flex-col gap-2">
           <Label htmlFor="status">Status</Label>
-          <NativeSelect
+          <Select
             defaultValue={defaults.status ?? "active"}
             id="status"
+            items={CLIENT_STATUSES.map((value) => ({ label: value, value }))}
             name="status"
           >
-            {CLIENT_STATUSES.map((value) => (
-              <NativeSelectOption key={value} value={value}>
-                {value}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {CLIENT_STATUSES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           {fieldError("status") ? (
             <p className="text-destructive text-sm">{fieldError("status")}</p>
           ) : null}

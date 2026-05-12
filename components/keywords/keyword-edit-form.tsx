@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateKeywordAction } from "@/lib/actions/keywords/update-keyword";
 import { idleState } from "@/lib/actions/types";
@@ -59,19 +63,32 @@ export function KeywordEditForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor={`priority-${keywordId}`}>Priority</Label>
-          <NativeSelect
-            className="w-full"
+          <Select
             defaultValue={defaults.priority ?? ""}
             id={`priority-${keywordId}`}
+            items={[
+              { label: "Unset", value: "" },
+              ...KEYWORD_PRIORITIES.map((priority) => ({
+                label: priority,
+                value: priority,
+              })),
+            ]}
             name="priority"
           >
-            <NativeSelectOption value="">Unset</NativeSelectOption>
-            {KEYWORD_PRIORITIES.map((priority) => (
-              <NativeSelectOption key={priority} value={priority}>
-                {priority}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="">Unset</SelectItem>
+                {KEYWORD_PRIORITIES.map((priority) => (
+                  <SelectItem key={priority} value={priority}>
+                    {priority}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           {fieldError("priority") ? (
             <p className="text-destructive text-sm">{fieldError("priority")}</p>
           ) : null}

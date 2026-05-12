@@ -14,9 +14,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -116,7 +120,11 @@ export function GscKeywordImportPanel({
         />
 
         <div>
-          <Button disabled={!canFetch || isFetching} onClick={handleFetch}>
+          <Button
+            disabled={!canFetch || isFetching}
+            onClick={handleFetch}
+            type="button"
+          >
             {isFetching ? "Fetching GSC queries…" : "Fetch GSC queries"}
           </Button>
         </div>
@@ -159,7 +167,10 @@ export function GscKeywordImportPanel({
                 {selectedQueries.length} of {selectableCandidates.length} new
                 queries selected.
               </p>
-              <Button disabled={isImporting || selectedQueries.length === 0}>
+              <Button
+                disabled={isImporting || selectedQueries.length === 0}
+                type="submit"
+              >
                 {isImporting ? "Importing…" : "Import selected keywords"}
               </Button>
             </div>
@@ -232,18 +243,28 @@ function DomainSelect({
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="gsc-import-domain">Import into domain</Label>
-      <NativeSelect
-        className="w-full md:max-w-md"
+      <Select
         defaultValue={defaultDomainId ?? domains[0]?.id}
         id="gsc-import-domain"
+        items={domains.map((domain) => ({
+          label: domain.url,
+          value: domain.id,
+        }))}
         name="domainId"
       >
-        {domains.map((domain) => (
-          <NativeSelectOption key={domain.id} value={domain.id}>
-            {domain.url}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+        <SelectTrigger className="w-full md:max-w-md">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {domains.map((domain) => (
+              <SelectItem key={domain.id} value={domain.id}>
+                {domain.url}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
       {domainError ? (
         <p className="text-destructive text-sm">{domainError}</p>
       ) : null}

@@ -33,9 +33,9 @@ export default function DashboardPage() {
             <Button render={<Link href="/clients/new" />}>Add client</Button>
           </>
         }
-        description="A command center for Different Growth's internal SEO workflow: client properties, keyword coverage, and upcoming GSC ranking movement."
+        description="A command center for Different Growth's internal SEO workflow: client properties, keyword coverage, GSC syncs, and ranking movement."
         eyebrow="Dashboard"
-        title="Visibility operations, ready for the first sync."
+        title="Visibility operations, tracking real movement."
       />
 
       <Suspense fallback={<DashboardOverviewSkeleton />}>
@@ -49,6 +49,9 @@ async function DashboardOverview() {
   await requireSession();
   const overview = await getDashboardOverview();
   const hasClients = overview.totalClients > 0;
+  const activeClients = overview.clients.filter(
+    (client) => client.status === "active"
+  );
 
   return (
     <>
@@ -85,51 +88,52 @@ async function DashboardOverview() {
         <section className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
           <Card className="bg-card/95">
             <CardHeader>
-              <CardTitle>Client queue</CardTitle>
+              <CardTitle>Active client queue</CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTable>
-                <DataTableHeader>
-                  <DataTableRow>
-                    <DataTableHead>Client</DataTableHead>
-                    <DataTableHead>Status</DataTableHead>
-                    <DataTableHead>Domains</DataTableHead>
-                    <DataTableHead>Reports</DataTableHead>
-                    <DataTableHead>Last sync</DataTableHead>
-                  </DataTableRow>
-                </DataTableHeader>
-                <DataTableBody>
-                  {overview.clients.slice(0, 8).map((client) => (
-                    <DataTableRow key={client.id}>
-                      <DataTableCell>
-                        <Link
-                          className="font-medium underline-offset-4 hover:underline"
-                          href={`/clients/${client.id}`}
-                        >
-                          {client.name}
-                        </Link>
-                        <p className="text-muted-foreground text-xs">
-                          {client.primaryDomain || "No primary domain"}
-                        </p>
-                      </DataTableCell>
-                      <DataTableCell>
-                        <Badge
-                          variant={
-                            client.status === "active" ? "default" : "secondary"
-                          }
-                        >
-                          {client.status}
-                        </Badge>
-                      </DataTableCell>
-                      <DataTableCell>{client._count.domains}</DataTableCell>
-                      <DataTableCell>{client._count.reports}</DataTableCell>
-                      <DataTableCell>
-                        {formatNullableDate(client.lastSyncedAt)}
-                      </DataTableCell>
+              {activeClients.length > 0 ? (
+                <DataTable>
+                  <DataTableHeader>
+                    <DataTableRow>
+                      <DataTableHead>Client</DataTableHead>
+                      <DataTableHead>Status</DataTableHead>
+                      <DataTableHead>Domains</DataTableHead>
+                      <DataTableHead>Reports</DataTableHead>
+                      <DataTableHead>Last sync</DataTableHead>
                     </DataTableRow>
-                  ))}
-                </DataTableBody>
-              </DataTable>
+                  </DataTableHeader>
+                  <DataTableBody>
+                    {activeClients.slice(0, 8).map((client) => (
+                      <DataTableRow key={client.id}>
+                        <DataTableCell>
+                          <Link
+                            className="font-medium underline-offset-4 hover:underline"
+                            href={`/clients/${client.id}`}
+                          >
+                            {client.name}
+                          </Link>
+                          <p className="text-muted-foreground text-xs">
+                            {client.primaryDomain || "No primary domain"}
+                          </p>
+                        </DataTableCell>
+                        <DataTableCell>
+                          <Badge variant="default">{client.status}</Badge>
+                        </DataTableCell>
+                        <DataTableCell>{client._count.domains}</DataTableCell>
+                        <DataTableCell>{client._count.reports}</DataTableCell>
+                        <DataTableCell>
+                          {formatNullableDate(client.lastSyncedAt)}
+                        </DataTableCell>
+                      </DataTableRow>
+                    ))}
+                  </DataTableBody>
+                </DataTable>
+              ) : (
+                <div className="border p-6 text-muted-foreground text-sm">
+                  No active clients. Archived clients stay available from the
+                  Archived filter on the clients page.
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -137,14 +141,15 @@ async function DashboardOverview() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RiPulseLine aria-hidden="true" className="size-4" />
-                Next dashboard milestone
+                MVP progress
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm leading-6">
               <p>
-                Phase 1 is now a functional shell. The next useful increment is
-                client and domain CRUD so the SEO team can model the book of
-                business without manual database edits.
+                Clients, domains, keywords, GSC connections, scheduled syncs,
+                and keyword history are now in place. The next useful increment
+                is report v1 and sharper ranking summaries for client-ready
+                reviews.
               </p>
               <Button render={<Link href="/clients?status=active" />} size="sm">
                 Review active clients

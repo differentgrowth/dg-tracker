@@ -110,6 +110,26 @@ export async function restoreClient(id: string) {
 }
 
 /**
+ * Permanently removes an archived client and cascades related client data.
+ */
+export async function deleteArchivedClient(id: string) {
+  const client = await prisma.client.findUnique({
+    where: { id },
+    select: { id: true, status: true },
+  });
+
+  if (!client) {
+    throw new Error(`Client not found: ${id}`);
+  }
+
+  if (client.status !== "archived") {
+    throw new Error("Only archived clients can be removed");
+  }
+
+  return prisma.client.delete({ where: { id } });
+}
+
+/**
  * Builds the client overview used by dashboards: domains, keyword count, and latest ranking summary.
  */
 export async function getClientOverview(id: string) {

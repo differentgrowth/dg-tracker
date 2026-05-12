@@ -39,8 +39,7 @@ interface ClientsPageProps {
 }
 
 const statusTabs: { href: Route; label: string; value: string }[] = [
-  { href: "/clients", label: "All", value: "all" },
-  { href: "/clients?status=active", label: "Active", value: "active" },
+  { href: "/clients", label: "Active", value: "active" },
   { href: "/clients?status=archived", label: "Archived", value: "archived" },
 ];
 
@@ -68,11 +67,12 @@ export default function ClientsPage({ searchParams }: ClientsPageProps) {
 
 async function ClientsList({ searchParams }: ClientsPageProps) {
   await requireSession();
-  const { q = "", status = "all" } = await searchParams;
+  const { q = "", status } = await searchParams;
+  const selectedStatus = status === "archived" ? "archived" : "active";
   const clients = await getAllClients();
   const normalizedQuery = q.trim().toLowerCase();
   const filteredClients = clients.filter((client) => {
-    const matchesStatus = status === "all" || client.status === status;
+    const matchesStatus = client.status === selectedStatus;
     const matchesQuery = normalizedQuery
       ? [
           client.name,
@@ -97,7 +97,7 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
               <Link
                 className={cn(
                   "px-4 py-2 font-semibold text-xs uppercase tracking-widest transition-colors hover:bg-muted",
-                  (status || "all") === tab.value &&
+                  selectedStatus === tab.value &&
                     "bg-primary text-primary-foreground"
                 )}
                 href={tab.href}
@@ -109,7 +109,7 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
           </nav>
           <search>
             <form action="/clients" className="relative">
-              <input name="status" type="hidden" value={status} />
+              <input name="status" type="hidden" value={selectedStatus} />
               <RiSearchLine
                 aria-hidden="true"
                 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"

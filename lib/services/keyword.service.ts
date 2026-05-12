@@ -28,6 +28,13 @@ export interface BulkCreateKeywordsResult {
   skippedCount: number;
 }
 
+export type KeywordDetailForClient = Prisma.KeywordGetPayload<{
+  include: {
+    domain: true;
+    snapshots: true;
+  };
+}>;
+
 const PRIORITY_RANK: Record<string, number> = {
   critical: 4,
   high: 3,
@@ -79,6 +86,31 @@ export function getKeywordsByClient(
   status: KeywordStatus = "active"
 ) {
   return getKeywordsForClient(clientId, { status });
+}
+
+/**
+ * Returns one keyword owned by a client with recent ranking history.
+ */
+export function getKeywordForClient(
+  clientId: string,
+  keywordId: string,
+  historyLimit = 90
+): Promise<KeywordDetailForClient | null> {
+  const safeLimit = Math.max(1, Math.floor(historyLimit));
+
+  return prisma.keyword.findFirst({
+    where: {
+      id: keywordId,
+      domain: { clientId },
+    },
+    include: {
+      domain: true,
+      snapshots: {
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        take: safeLimit,
+      },
+    },
+  });
 }
 
 /**

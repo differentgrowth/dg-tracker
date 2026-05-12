@@ -1,15 +1,19 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { bulkCreateKeywordsAction } from "@/lib/actions/keywords/bulk-create-keywords";
 import { idleState } from "@/lib/actions/types";
@@ -29,10 +33,12 @@ export function KeywordBulkForm({
   const action = bulkCreateKeywordsAction.bind(null, clientId);
   const [state, formAction, isPending] = useActionState(action, idleState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectResetKey, setSelectResetKey] = useState(0);
 
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
+      setSelectResetKey((current) => current + 1);
     }
   }, [state.status]);
 
@@ -74,19 +80,29 @@ export function KeywordBulkForm({
               *
             </span>
           </Label>
-          <NativeSelect
-            className="w-full"
+          <Select
             defaultValue={defaultDomainId ?? domains[0]?.id}
             id="domainId"
-            key={defaultDomainId ?? "default"}
+            items={domains.map((domain) => ({
+              label: domain.url,
+              value: domain.id,
+            }))}
+            key={`domain-${selectResetKey}-${defaultDomainId ?? "default"}`}
             name="domainId"
           >
-            {domains.map((domain) => (
-              <NativeSelectOption key={domain.id} value={domain.id}>
-                {domain.url}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {domains.map((domain) => (
+                  <SelectItem key={domain.id} value={domain.id}>
+                    {domain.url}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           {fieldError("domainId") ? (
             <p className="text-destructive text-sm">{fieldError("domainId")}</p>
           ) : null}
@@ -94,19 +110,33 @@ export function KeywordBulkForm({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="priority">Priority</Label>
-          <NativeSelect
-            className="w-full"
+          <Select
             defaultValue=""
             id="priority"
+            items={[
+              { label: "Unset", value: "" },
+              ...KEYWORD_PRIORITIES.map((priority) => ({
+                label: priority,
+                value: priority,
+              })),
+            ]}
+            key={`priority-${selectResetKey}`}
             name="priority"
           >
-            <NativeSelectOption value="">Unset</NativeSelectOption>
-            {KEYWORD_PRIORITIES.map((priority) => (
-              <NativeSelectOption key={priority} value={priority}>
-                {priority}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="">Unset</SelectItem>
+                {KEYWORD_PRIORITIES.map((priority) => (
+                  <SelectItem key={priority} value={priority}>
+                    {priority}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           {fieldError("priority") ? (
             <p className="text-destructive text-sm">{fieldError("priority")}</p>
           ) : null}

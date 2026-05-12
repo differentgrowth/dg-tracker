@@ -100,11 +100,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <div className="mx-2 border bg-sidebar p-3 shadow-[6px_6px_0_0_var(--border)]">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-widest">
                   <RiSparklingLine aria-hidden="true" className="size-3.5" />
-                  Phase 1
+                  MVP progress
                 </div>
                 <p className="mt-2 text-muted-foreground text-xs leading-relaxed">
-                  Shell, empty states, and read-only client visibility before
-                  CRUD and GSC sync.
+                  Clients, domains, keywords, GSC sync, and ranking history are
+                  live. Reports and tighter summaries are next.
                 </p>
               </div>
             </SidebarGroupContent>

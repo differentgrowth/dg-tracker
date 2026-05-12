@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { RiArrowUpDownLine, RiExternalLinkLine } from "@remixicon/react";
 
 import { ArchiveClientButton } from "@/components/clients/archive-client-button";
+import { DeleteArchivedClientButton } from "@/components/clients/delete-archived-client-button";
 import {
   DataTable,
   DataTableBody,
@@ -18,7 +19,10 @@ import {
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { GscConnectionPanel } from "@/components/gsc/gsc-connection-panel";
-import { KeywordRankingSparkline } from "@/components/keywords/keyword-ranking-sparkline";
+import {
+  KeywordSnapshotTable,
+  type KeywordSnapshotTableRow,
+} from "@/components/keywords/keyword-snapshot-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,10 +41,7 @@ import {
 } from "@/lib/ranking-position";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
-import {
-  getKeywordRankingSeriesForClient,
-  getRankingChangesForClient,
-} from "@/lib/services/ranking.service";
+import { getRankingChangesForClient } from "@/lib/services/ranking.service";
 import { cn } from "@/lib/utils";
 
 interface ClientDetailPageProps {
@@ -67,11 +68,10 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   const { gsc, reason, window = "30" } = await searchParams;
   const movementWindow = window === "7" ? 7 : 30;
 
-  const [client, keywords, rankingChanges, rankingSeries] = await Promise.all([
+  const [client, keywords, rankingChanges] = await Promise.all([
     getClientOverview(clientId).catch(() => null),
     getKeywordsByClient(clientId),
     getRankingChangesForClient(clientId, movementWindow),
-    getKeywordRankingSeriesForClient(clientId),
   ]);
 
   if (!client) {
@@ -87,8 +87,23 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   const losers = rankingChanges.filter(
     (change) => change.change !== null && change.change < 0
   );
-  const rankingSeriesByKeywordId = new Map(
-    rankingSeries.map((series) => [series.keywordId, series.points])
+  const keywordSnapshotRows: KeywordSnapshotTableRow[] = keywords.map(
+    (keyword) => {
+      const latestSnapshot = keyword.snapshots[0];
+
+      return {
+        id: keyword.id,
+        term: keyword.term,
+        category: keyword.category,
+        domainUrl: keyword.domain.url,
+        priority: keyword.priority,
+        tags: keyword.tags,
+        latestPosition: getRankingPosition(latestSnapshot),
+        clicks: latestSnapshot?.clicks ?? null,
+        ctr: latestSnapshot?.ctr ?? null,
+        detailHref: `/clients/${client.id}/keywords/${keyword.id}` as Route,
+      };
+    }
   );
 
   return (
@@ -118,6 +133,10 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
               Edit
             </Button>
             <ArchiveClientButton clientId={client.id} status={client.status} />
+            <DeleteArchivedClientButton
+              clientId={client.id}
+              status={client.status}
+            />
           </>
         }
         description={
@@ -184,7 +203,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
+      <section>
         <GscConnectionPanel
           canManageConnection={session.user.role === "admin"}
           clientId={client.id}
@@ -193,89 +212,26 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
           keywordCount={client.keywordCount}
           notice={gscNotice}
         />
-        <div className="hidden xl:block" />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
+        <DomainDataCard clientId={client.id} domains={client.domains} />
+        <MovementCard
+          clientId={client.id}
+          losers={losers}
+          movementWindow={movementWindow}
+          winners={winners}
+        />
+      </section>
+
+      <section>
         <Card className="bg-card/95">
-          <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+          <CardHeader>
             <CardTitle>Keyword snapshot</CardTitle>
-            <nav aria-label="Movement window" className="flex border">
-              {movementWindows.map((days) => (
-                <Link
-                  className={cn(
-                    "px-4 py-2 font-semibold text-xs uppercase tracking-widest transition-colors hover:bg-muted",
-                    movementWindow === days &&
-                      "bg-primary text-primary-foreground"
-                  )}
-                  href={`/clients/${client.id}?window=${days}` as Route}
-                  key={days}
-                >
-                  {days} days
-                </Link>
-              ))}
-            </nav>
           </CardHeader>
           <CardContent>
             {keywords.length > 0 ? (
-              <DataTable>
-                <DataTableHeader>
-                  <DataTableRow>
-                    <DataTableHead>Keyword</DataTableHead>
-                    <DataTableHead>Domain</DataTableHead>
-                    <DataTableHead>Priority</DataTableHead>
-                    <DataTableHead>Position</DataTableHead>
-                    <DataTableHead>Clicks</DataTableHead>
-                    <DataTableHead>CTR</DataTableHead>
-                    <DataTableHead>Trend</DataTableHead>
-                  </DataTableRow>
-                </DataTableHeader>
-                <DataTableBody>
-                  {keywords.map((keyword) => {
-                    const latestSnapshot = keyword.snapshots[0];
-
-                    return (
-                      <DataTableRow key={keyword.id}>
-                        <DataTableCell>
-                          <p className="font-medium">{keyword.term}</p>
-                          <p className="text-muted-foreground text-xs">
-                            {keyword.tags.length > 0
-                              ? keyword.tags.join(", ")
-                              : "No tags"}
-                          </p>
-                        </DataTableCell>
-                        <DataTableCell>{keyword.domain.url}</DataTableCell>
-                        <DataTableCell>
-                          <Badge variant="secondary">
-                            {keyword.priority || "unset"}
-                          </Badge>
-                        </DataTableCell>
-                        <DataTableCell>
-                          {formatRankingPosition(
-                            getRankingPosition(latestSnapshot)
-                          )}
-                        </DataTableCell>
-                        <DataTableCell>
-                          {latestSnapshot?.clicks ?? "—"}
-                        </DataTableCell>
-                        <DataTableCell>
-                          {latestSnapshot?.ctr !== null &&
-                          latestSnapshot?.ctr !== undefined
-                            ? `${(latestSnapshot.ctr * 100).toFixed(1)}%`
-                            : "—"}
-                        </DataTableCell>
-                        <DataTableCell>
-                          <KeywordRankingSparkline
-                            points={
-                              rankingSeriesByKeywordId.get(keyword.id) ?? []
-                            }
-                          />
-                        </DataTableCell>
-                      </DataTableRow>
-                    );
-                  })}
-                </DataTableBody>
-              </DataTable>
+              <KeywordSnapshotTable rows={keywordSnapshotRows} />
             ) : (
               <Empty className="border">
                 <EmptyHeader>
@@ -298,19 +254,6 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
                 </Button>
               </Empty>
             )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/95">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <RiArrowUpDownLine aria-hidden="true" className="size-4" />
-              Movement
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <MovementList changes={winners.slice(0, 5)} title="Winners" />
-            <MovementList changes={losers.slice(0, 5)} title="Losers" />
           </CardContent>
         </Card>
       </section>
@@ -336,6 +279,114 @@ function ClientDetailSkeleton() {
 interface MovementListProps {
   changes: Awaited<ReturnType<typeof getRankingChangesForClient>>;
   title: string;
+}
+
+interface DomainDataCardProps {
+  clientId: string;
+  domains: Awaited<ReturnType<typeof getClientOverview>>["domains"];
+}
+
+function DomainDataCard({ clientId, domains }: DomainDataCardProps) {
+  return (
+    <Card className="bg-card/95">
+      <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+        <CardTitle>Domain data</CardTitle>
+        <Button
+          render={<Link href={`/clients/${clientId}/domains` as Route} />}
+          size="sm"
+          variant="outline"
+        >
+          Manage domains
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {domains.length === 0 ? (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>No domains yet</EmptyTitle>
+              <EmptyDescription>
+                Add a domain before attaching tracked keywords.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <DataTable>
+            <DataTableHeader>
+              <DataTableRow>
+                <DataTableHead>Domain</DataTableHead>
+                <DataTableHead>Keywords</DataTableHead>
+                <DataTableHead>Sync window</DataTableHead>
+              </DataTableRow>
+            </DataTableHeader>
+            <DataTableBody>
+              {domains.map((domain) => (
+                <DataTableRow key={domain.id}>
+                  <DataTableCell>
+                    <p className="max-w-80 truncate font-medium">
+                      {domain.url}
+                    </p>
+                    {domain.notes ? (
+                      <p className="max-w-80 truncate text-muted-foreground text-xs">
+                        {domain.notes}
+                      </p>
+                    ) : null}
+                  </DataTableCell>
+                  <DataTableCell>{domain._count.keywords}</DataTableCell>
+                  <DataTableCell>
+                    {domain.scheduledSyncDays} trailing day
+                    {domain.scheduledSyncDays === 1 ? "" : "s"}
+                  </DataTableCell>
+                </DataTableRow>
+              ))}
+            </DataTableBody>
+          </DataTable>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface MovementCardProps {
+  clientId: string;
+  losers: Awaited<ReturnType<typeof getRankingChangesForClient>>;
+  movementWindow: number;
+  winners: Awaited<ReturnType<typeof getRankingChangesForClient>>;
+}
+
+function MovementCard({
+  clientId,
+  losers,
+  movementWindow,
+  winners,
+}: MovementCardProps) {
+  return (
+    <Card className="bg-card/95">
+      <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <RiArrowUpDownLine aria-hidden="true" className="size-4" />
+          Movement
+        </CardTitle>
+        <nav aria-label="Movement window" className="flex border">
+          {movementWindows.map((days) => (
+            <Link
+              className={cn(
+                "px-4 py-2 font-semibold text-xs uppercase tracking-widest transition-colors hover:bg-muted",
+                movementWindow === days && "bg-primary text-primary-foreground"
+              )}
+              href={`/clients/${clientId}?window=${days}` as Route}
+              key={days}
+            >
+              {days} days
+            </Link>
+          ))}
+        </nav>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <MovementList changes={winners.slice(0, 5)} title="Winners" />
+        <MovementList changes={losers.slice(0, 5)} title="Losers" />
+      </CardContent>
+    </Card>
+  );
 }
 
 function MovementList({ changes, title }: MovementListProps) {

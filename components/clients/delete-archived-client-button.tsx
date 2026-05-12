@@ -15,39 +15,42 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  archiveClientAction,
-  restoreClientAction,
-} from "@/lib/actions/clients/archive-client";
+import { deleteArchivedClientAction } from "@/lib/actions/clients/delete-archived-client";
 
-interface ArchiveClientButtonProps {
+interface DeleteArchivedClientButtonProps {
   clientId: string;
   status: string;
 }
 
-export function ArchiveClientButton({
+export function DeleteArchivedClientButton({
   clientId,
   status,
-}: ArchiveClientButtonProps) {
+}: DeleteArchivedClientButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
-  const isArchived = status === "archived";
+  const [error, setError] = useState<string | null>(null);
+
+  if (status !== "archived") {
+    return null;
+  }
 
   function onConfirm() {
+    setError(null);
     startTransition(async () => {
-      const result = isArchived
-        ? await restoreClientAction(clientId)
-        : await archiveClientAction(clientId);
+      const result = await deleteArchivedClientAction(clientId);
 
       if (result.status !== "success") {
+        setError(
+          result.status === "error" && result.formError
+            ? result.formError
+            : "Could not remove the archived client."
+        );
         return;
       }
 
-      if (!isArchived) {
-        router.replace("/clients");
-      }
       setOpen(false);
+      router.replace("/clients?status=archived");
     });
   }
 
@@ -55,26 +58,29 @@ export function ArchiveClientButton({
     <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogTrigger
         render={
-          <Button disabled={isPending} variant="outline">
-            {isArchived ? "Restore" : "Archive"}
+          <Button disabled={isPending} variant="destructive">
+            Remove
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isArchived ? "Restore this client?" : "Archive this client?"}
-          </AlertDialogTitle>
+          <AlertDialogTitle>Remove this archived client?</AlertDialogTitle>
           <AlertDialogDescription>
-            {isArchived
-              ? "Restoring sets the client status back to active and surfaces it in default dashboards again."
-              : "Archiving keeps every domain, keyword, and ranking snapshot intact. The client is hidden from default dashboards but stays accessible under the Archived tab."}
+            This permanently deletes the client and cascades its domains,
+            keywords, ranking snapshots, GSC connection, GSC performance
+            snapshots, and reports. This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {error ? <p className="text-destructive text-sm">{error}</p> : null}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={isPending} onClick={onConfirm}>
-            {isArchived ? "Restore" : "Archive"}
+          <AlertDialogAction
+            disabled={isPending}
+            onClick={onConfirm}
+            variant="destructive"
+          >
+            Remove permanently
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
