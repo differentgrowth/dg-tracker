@@ -135,6 +135,12 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
               Keywords
             </Button>
             <Button
+              render={<Link href={`/clients/${client.id}/reports` as Route} />}
+              variant="outline"
+            >
+              Reports
+            </Button>
+            <Button
               render={<Link href={`/clients/${client.id}/edit` as Route} />}
               variant="outline"
             >

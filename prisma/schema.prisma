@@ -185,10 +185,13 @@ model Report {
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   periodStart DateTime
   periodEnd   DateTime
+  status      String   @default("generated") // generated | failed
+  summary     Json     @default("{}")
   fileUrl     String? // link to generated PDF/report
   generatedBy String? // user who triggered it
   createdAt   DateTime @default(now())
 
+  @@unique([clientId, periodStart, periodEnd])
   @@index([clientId, periodStart])
   @@map("reports")
 }
