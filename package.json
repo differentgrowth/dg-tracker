@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "next build",
     "check": "biome check --write --unsafe",
     "dev": "next dev",
@@ -12,7 +13,9 @@
     "lint": "biome lint",
     "prepare": "husky",
     "start": "next start",
+    "pretest": "prisma generate",
     "test": "node --import tsx --test",
+    "pretypecheck": "prisma generate",
     "typecheck": "tsc --noEmit",
     "user:create": "tsx scripts/create-user.ts",
     "db:seed": "tsx prisma/seed.ts"

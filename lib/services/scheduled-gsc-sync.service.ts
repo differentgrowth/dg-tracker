@@ -9,6 +9,32 @@ export interface ScheduledGscSyncOptions {
   now?: () => Date;
 }
 
+interface ScheduledGscSyncDomain {
+  clientId: string;
+  id: string;
+  scheduledSyncDays: number;
+}
+
+interface ScheduledGscSyncDb {
+  domain: {
+    findMany: (args: {
+      orderBy: ({ client: { name: "asc" } } | { url: "asc" })[];
+      select: { clientId: true; id: true; scheduledSyncDays: true };
+      where: {
+        client: {
+          gscConnection: { isNot: null };
+          status: "active";
+        };
+      };
+    }) => Promise<ScheduledGscSyncDomain[]>;
+  };
+}
+
+interface ScheduledGscSyncDependencies {
+  db?: ScheduledGscSyncDb;
+  syncGscPropertyForClient?: typeof syncGscPropertyForClient;
+}
+
 export interface ScheduledGscSyncDomainResult {
   clientId: string;
   domainId: string;
@@ -51,12 +77,15 @@ function getErrorMessage(error: unknown): string {
  * lookback window while each keyword/date/source snapshot remains idempotent.
  */
 export async function runScheduledGscSync(
-  opts: ScheduledGscSyncOptions = {}
+  opts: ScheduledGscSyncOptions = {},
+  deps: ScheduledGscSyncDependencies = {}
 ): Promise<ScheduledGscSyncResult> {
+  const db = deps.db ?? prisma;
   const now = opts.now ?? (() => new Date());
+  const runSync = deps.syncGscPropertyForClient ?? syncGscPropertyForClient;
   const startedAt = now();
 
-  const domains = await prisma.domain.findMany({
+  const domains = await db.domain.findMany({
     where: {
       client: {
         status: "active",
@@ -82,7 +111,7 @@ export async function runScheduledGscSync(
     startDate.setUTCDate(endDate.getUTCDate() - scheduledSyncDays);
 
     try {
-      const result = await syncGscPropertyForClient({
+      const result = await runSync({
         clientId: domain.clientId,
         domainId: domain.id,
         startDate,

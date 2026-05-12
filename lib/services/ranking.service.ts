@@ -5,6 +5,16 @@ import { getRankingPosition } from "@/lib/ranking-position";
 
 const defaultHistoryLimit = 90;
 
+export interface KeywordRankingPoint {
+  date: string;
+  position: number | null;
+}
+
+export interface KeywordRankingSeries {
+  keywordId: string;
+  points: KeywordRankingPoint[];
+}
+
 export interface RankingChange {
   change: number | null;
   domainId: string;
@@ -49,6 +59,51 @@ export function createRankingSnapshot(
   data: Prisma.RankingSnapshotUncheckedCreateInput
 ) {
   return prisma.rankingSnapshot.create({ data });
+}
+
+/**
+ * Returns GSC ranking positions for every active keyword in a client, oldest first.
+ * The chart intentionally uses GSC average position so it matches scheduled sync data.
+ */
+export async function getKeywordRankingSeriesForClient(
+  clientId: string,
+  days = defaultHistoryLimit
+): Promise<KeywordRankingSeries[]> {
+  const safeDays = Math.max(1, Math.floor(days));
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - safeDays);
+
+  const keywords = await prisma.keyword.findMany({
+    where: {
+      status: "active",
+      domain: { clientId },
+    },
+    select: {
+      id: true,
+      snapshots: {
+        where: {
+          date: { gte: since },
+          source: "gsc",
+        },
+        orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+        select: {
+          avgPosition: true,
+          date: true,
+          position: true,
+          source: true,
+        },
+      },
+    },
+    orderBy: { term: "asc" },
+  });
+
+  return keywords.map((keyword) => ({
+    keywordId: keyword.id,
+    points: keyword.snapshots.map((snapshot) => ({
+      date: snapshot.date.toISOString().slice(0, 10),
+      position: getRankingPosition(snapshot),
+    })),
+  }));
 }
 
 /**

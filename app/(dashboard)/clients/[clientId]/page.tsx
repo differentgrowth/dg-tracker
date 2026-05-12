@@ -18,6 +18,7 @@ import {
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { GscConnectionPanel } from "@/components/gsc/gsc-connection-panel";
+import { KeywordRankingSparkline } from "@/components/keywords/keyword-ranking-sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,10 @@ import {
 } from "@/lib/ranking-position";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
-import { getRankingChangesForClient } from "@/lib/services/ranking.service";
+import {
+  getKeywordRankingSeriesForClient,
+  getRankingChangesForClient,
+} from "@/lib/services/ranking.service";
 import { cn } from "@/lib/utils";
 
 interface ClientDetailPageProps {
@@ -63,10 +67,11 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   const { gsc, reason, window = "30" } = await searchParams;
   const movementWindow = window === "7" ? 7 : 30;
 
-  const [client, keywords, rankingChanges] = await Promise.all([
+  const [client, keywords, rankingChanges, rankingSeries] = await Promise.all([
     getClientOverview(clientId).catch(() => null),
     getKeywordsByClient(clientId),
     getRankingChangesForClient(clientId, movementWindow),
+    getKeywordRankingSeriesForClient(clientId),
   ]);
 
   if (!client) {
@@ -80,6 +85,9 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   );
   const losers = rankingChanges.filter(
     (change) => change.change !== null && change.change < 0
+  );
+  const rankingSeriesByKeywordId = new Map(
+    rankingSeries.map((series) => [series.keywordId, series.points])
   );
 
   return (
@@ -188,6 +196,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
                     <DataTableHead>Position</DataTableHead>
                     <DataTableHead>Clicks</DataTableHead>
                     <DataTableHead>CTR</DataTableHead>
+                    <DataTableHead>Trend</DataTableHead>
                   </DataTableRow>
                 </DataTableHeader>
                 <DataTableBody>
@@ -223,6 +232,13 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
                           latestSnapshot?.ctr !== undefined
                             ? `${(latestSnapshot.ctr * 100).toFixed(1)}%`
                             : "—"}
+                        </DataTableCell>
+                        <DataTableCell>
+                          <KeywordRankingSparkline
+                            points={
+                              rankingSeriesByKeywordId.get(keyword.id) ?? []
+                            }
+                          />
                         </DataTableCell>
                       </DataTableRow>
                     );
