@@ -16,15 +16,16 @@ This is an internal agency tool, not a public SaaS product. Prefer pragmatic, ma
 
 ## Current State
 
-The repository currently contains the MVP foundation through Phase 5:
+The repository currently contains the MVP foundation through Phase 7:
 
 - Next.js `16.2.x` with the App Router, React `19`, TypeScript strict mode, Tailwind CSS v4, and shadcn/ui.
 - Better Auth email/password login with manual internal user provisioning.
 - Prisma `7` with PostgreSQL models for users, clients, domains, keywords, ranking snapshots, reports, and Google Search Console connections.
-- Authenticated dashboard routes for clients, domains, keywords, ranking snapshots, and keyword ranking trend charts.
+- Authenticated dashboard routes for clients, domains, keywords, ranking snapshots, keyword ranking trend charts, and internal reports.
 - Google Search Console OAuth, encrypted token storage, property verification, typed API client, and manual or scheduled sync into `RankingSnapshot.avgPosition`.
-- Vercel Cron configuration for daily GSC syncs with per-domain lookback windows.
-- Node test coverage for GSC token crypto, OAuth callback handling, API client retry/refresh behavior, sync aggregation, and scheduled sync safety.
+- Vercel Cron configuration for daily GSC syncs with per-domain lookback windows and site-wide performance snapshots.
+- Internal monthly report generation from stored ranking and GSC performance snapshots.
+- Node test coverage for GSC token crypto, OAuth callback handling, API client retry/refresh behavior, sync aggregation, scheduled sync safety, performance snapshots, and report summaries.
 
 ## Tech Stack
 
@@ -263,9 +264,9 @@ Each domain controls its scheduled sync lookback with `Domain.scheduledSyncDays`
 - **Keyword tracking**: tracked keyword groups, target URLs, tags, and priority levels.
 - **Ranking history**: daily position snapshots, movement calculations, and trend storage.
 - **Dashboards**: client overview, ranking movement, winners/losers, opportunity keywords, and health checks.
-- **Reporting**: internal views first, then client-ready recurring report exports.
+- **Reporting**: internal monthly views first, then client-ready recurring report exports.
+- **Site performance snapshots**: continue refining property-level GSC performance scoring and visibility summaries.
 - **Optional SERP APIs**: supplemental rank checks for keywords or competitors that GSC cannot cover.
-- **Next after keyword charts — global site performance indicator (Option B)**: store true site-wide GSC performance snapshots per domain with `clicks`, `impressions`, `ctr`, `avgPosition`, a derived internal score, and a timestamp so dashboards can compare overall organic visibility over time.
 
 ## Adding New Features
 

@@ -17,25 +17,59 @@ The MVP is shippable when an internal team member can:
 
 If a flow cannot be reduced to those steps, it is post-MVP scope.
 
-## Status Snapshot
+## Current MVP Status Audit — 2026-05-12
 
-Already in place:
+Implementation is beyond the original Phase 7 checklist. The core MVP workflow is
+mostly present in code, but it still needs production deployment validation and a
+real-data smoke test before it should be called shipped.
 
-- Next.js 16 App Router scaffold with React 19, TypeScript strict, Tailwind v4, shadcn/ui.
-- Prisma schema with `User`, `Session`, `Account`, `Verification`, `Client`, `Domain`, `Keyword`, `RankingSnapshot`, `Report`, `GscConnection`. Migrations committed under `prisma/migrations/`.
-- Better Auth email/password login, manual user provisioning, session helpers (`getSession`, `requireSession`, `requireAdmin`).
-- `/login`, `/dashboard`, client/domain/keyword dashboard routes, and `/` redirects based on session.
-- Services in `lib/services/` for `client`, `domain`, `keyword`, `ranking`, `report`, and GSC sync.
-- GSC OAuth, dedicated encrypted token storage, typed GSC client, OAuth callback, manual sync action, and client-page GSC controls.
-- `.env.example` with database, Better Auth, app URL, Google OAuth, and token encryption variables.
-- Local Postgres via `docker/docker-compose.yml`.
+### Implemented
 
-Not yet in place:
+- Authenticated dashboard shell, Better Auth email/password login, manual user
+  provisioning, admin guard, and public sign-up blocking.
+- Client, domain, and keyword management with Server Actions, validators,
+  archive/restore behavior, and bulk keyword creation.
+- Prisma schema and migrations for users, sessions, clients, domains, keywords,
+  ranking snapshots, reports, GSC connections, and site-wide GSC performance
+  snapshots.
+- Google Search Console OAuth with encrypted token storage, property
+  authorization checks, typed client wrappers, token refresh/retry behavior,
+  manual sync, query import candidates, and scheduled sync services.
+- Vercel Cron configuration at `/api/cron/gsc-sync` for daily keyword ranking
+  snapshots and site-wide GSC performance snapshots.
+- Ranking dashboard surfaces: client KPI tiles, keyword tables with sparklines,
+  7/30-day winners and losers, keyword detail charts, and raw snapshot tables.
+- Internal report v1: monthly report generation, persisted JSON summary, report
+  list/detail pages, KPI deltas, top wins/losses, and opportunities.
+- Node test coverage for ranking formatting, GSC crypto/OAuth/client behavior,
+  sync aggregation/idempotency, performance snapshots, scheduled sync safety,
+  and report summary calculations.
 
-- Vercel Cron Job for daily sync (`CRON_SECRET` env var).
-- Full ranking dashboards, charts, or reports UI.
-- Deployment to Vercel and Neon production database.
-- Admin tooling for user provisioning beyond manual DB inserts.
+### Remaining MVP gaps
+
+- Production deployment to Vercel and Neon is not documented as complete.
+- The Phase 5 exit criterion is not fully proven: the cron needs to run
+  unattended for at least 3 days against a real connected client and show fresh
+  snapshots without duplicates.
+- A manual end-to-end smoke test is still needed with a real or seeded client:
+  sign in, create a client/domain, connect GSC, add/import keywords, sync, view
+  charts, generate a monthly report, regenerate the same period, and confirm no
+  duplicate report rows.
+- Admin user provisioning is still CLI-only (`pnpm user:create`); this is
+  acceptable for MVP but remains an operations gap.
+- Build verification is environment-sensitive because `next/font/google` must
+  fetch Urbanist and Geist Mono during `next build`; the local audit environment
+  could not reach Google Fonts.
+- README/dashboard copy may drift as phases complete; keep product-facing status
+  text in sync with this roadmap during follow-up work.
+
+### Audit findings to watch
+
+- No TypeScript, lint, or unit-test failures were found during this audit.
+- The only failed check was `pnpm build`, blocked by Google Fonts fetch failures
+  in `app/layout.tsx`, not by an application type error.
+- No separate Phase 7 checklist is needed now that internal report v1 is
+  implemented; the temporary `PHASE_7_CHECKLIST.md` file has been removed.
 
 ## Phase 1 — Authenticated app shell
 
