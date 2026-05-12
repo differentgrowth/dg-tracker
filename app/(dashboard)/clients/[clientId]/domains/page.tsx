@@ -58,6 +58,7 @@ async function Domains({ params }: DomainsPageProps) {
           url: domain.url,
           notes: domain.notes,
           keywordCount: domain._count.keywords,
+          scheduledSyncDays: domain.scheduledSyncDays,
         }))}
       />
     </>
