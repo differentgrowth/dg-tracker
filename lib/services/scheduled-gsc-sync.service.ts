@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { syncGscPerformanceSnapshots } from "@/lib/services/gsc-performance-snapshot.service";
 import { syncGscPropertyForClient } from "@/lib/services/gsc-sync.service";
 
 export const scheduledGscSyncMinDays = 1;
@@ -15,7 +16,21 @@ interface ScheduledGscSyncDomain {
   scheduledSyncDays: number;
 }
 
+interface ScheduledGscPerformanceClient {
+  id: string;
+}
+
 interface ScheduledGscSyncDb {
+  client: {
+    findMany: (args: {
+      orderBy: { name: "asc" };
+      select: { id: true };
+      where: {
+        gscConnection: { isNot: null };
+        status: "active";
+      };
+    }) => Promise<ScheduledGscPerformanceClient[]>;
+  };
   domain: {
     findMany: (args: {
       orderBy: ({ client: { name: "asc" } } | { url: "asc" })[];
@@ -31,8 +46,13 @@ interface ScheduledGscSyncDb {
 }
 
 interface ScheduledGscSyncDependencies {
-  db?: ScheduledGscSyncDb;
+  db?: Pick<ScheduledGscSyncDb, "domain">;
   syncGscPropertyForClient?: typeof syncGscPropertyForClient;
+}
+
+interface ScheduledGscPerformanceSnapshotDependencies {
+  db?: Pick<ScheduledGscSyncDb, "client">;
+  syncGscPerformanceSnapshots?: typeof syncGscPerformanceSnapshots;
 }
 
 export interface ScheduledGscSyncDomainResult {
@@ -153,6 +173,95 @@ export async function runScheduledGscSync(
     results,
     startedAt,
     succeededDomainCount,
+    totalSnapshotsUpserted,
+  };
+}
+
+export interface ScheduledGscPerformanceSnapshotResult {
+  clientId: string;
+  error?: string;
+  snapshotsUpserted: number;
+  status: "success" | "error";
+}
+
+export interface ScheduledGscPerformanceSnapshotSyncResult {
+  clientCount: number;
+  failedClientCount: number;
+  finishedAt: Date;
+  results: ScheduledGscPerformanceSnapshotResult[];
+  startedAt: Date;
+  succeededClientCount: number;
+  totalSnapshotsUpserted: number;
+}
+
+/**
+ * Runs one site-wide GSC performance snapshot sync per active connected client.
+ * Unlike keyword sync, this does not require domains or tracked keywords.
+ */
+export async function runScheduledGscPerformanceSnapshotSync(
+  opts: ScheduledGscSyncOptions = {},
+  deps: ScheduledGscPerformanceSnapshotDependencies = {}
+): Promise<ScheduledGscPerformanceSnapshotSyncResult> {
+  const db = deps.db ?? prisma;
+  const now = opts.now ?? (() => new Date());
+  const runSync =
+    deps.syncGscPerformanceSnapshots ?? syncGscPerformanceSnapshots;
+  const startedAt = now();
+
+  const clients = await db.client.findMany({
+    where: {
+      status: "active",
+      gscConnection: { isNot: null },
+    },
+    select: { id: true },
+    orderBy: { name: "asc" },
+  });
+
+  const endDate = new Date(startedAt);
+  const startDate = new Date(startedAt);
+  startDate.setUTCDate(endDate.getUTCDate() - scheduledGscSyncDefaultDays);
+
+  const results: ScheduledGscPerformanceSnapshotResult[] = [];
+
+  for (const client of clients) {
+    try {
+      const result = await runSync({
+        clientId: client.id,
+        startDate,
+        endDate,
+        triggeredBy: "scheduled",
+      });
+      results.push({
+        clientId: client.id,
+        snapshotsUpserted: result.snapshotsUpserted,
+        status: "success",
+      });
+    } catch (error) {
+      results.push({
+        clientId: client.id,
+        error: getErrorMessage(error),
+        snapshotsUpserted: 0,
+        status: "error",
+      });
+    }
+  }
+
+  const succeededClientCount = results.filter(
+    (result) => result.status === "success"
+  ).length;
+  const failedClientCount = results.length - succeededClientCount;
+  const totalSnapshotsUpserted = results.reduce(
+    (total, result) => total + result.snapshotsUpserted,
+    0
+  );
+
+  return {
+    clientCount: clients.length,
+    failedClientCount,
+    finishedAt: now(),
+    results,
+    startedAt,
+    succeededClientCount,
     totalSnapshotsUpserted,
   };
 }

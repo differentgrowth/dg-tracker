@@ -42,7 +42,7 @@ export function GscConnectionPanel({
 }: GscConnectionPanelProps) {
   const [isPending, startTransition] = useTransition();
   const hasRequiredScope = connection?.scopes.includes(REQUIRED_SCOPE) ?? false;
-  const canSync = Boolean(connection && hasRequiredScope && keywordCount > 0);
+  const canSync = Boolean(connection && hasRequiredScope);
 
   function handleConnect() {
     startTransition(async () => {
@@ -181,7 +181,8 @@ export function GscConnectionPanel({
         )}
         {keywordCount === 0 ? (
           <p className="text-muted-foreground">
-            Add tracked keywords before running the first GSC sync.
+            Syncing now will still store site-wide GSC performance. Add tracked
+            keywords later for keyword-level snapshots.
           </p>
         ) : null}
         <div className="flex flex-wrap gap-2 pt-2">

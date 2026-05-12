@@ -97,9 +97,10 @@ model Client {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  domains       Domain[]
-  reports       Report[]
-  gscConnection GscConnection?
+  domains                 Domain[]
+  reports                 Report[]
+  gscConnection           GscConnection?
+  gscPerformanceSnapshots GscPerformanceSnapshot[]
 
   @@index([status])
   @@map("clients")
@@ -213,6 +214,34 @@ model GscConnection {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
+  performanceSnapshots GscPerformanceSnapshot[]
+
   @@index([googleAccountSubject])
   @@map("gsc_connections")
+}
+
+model GscPerformanceSnapshot {
+  id              String        @id @default(cuid())
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  gscConnectionId String
+  gscConnection   GscConnection @relation(fields: [gscConnectionId], references: [id], onDelete: Cascade)
+  siteUrl         String
+  date            DateTime
+  searchType      String        @default("web")
+  dataState       String        @default("all")
+  clicks          Int
+  impressions     Int
+  ctr             Float
+  avgPosition     Float
+  score           Float
+  scoreVersion    Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([clientId, siteUrl, date, searchType, dataState])
+  @@index([clientId, date])
+  @@index([gscConnectionId, date])
+  @@index([siteUrl, date])
+  @@map("gsc_performance_snapshots")
 }
