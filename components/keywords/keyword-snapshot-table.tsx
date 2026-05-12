@@ -20,6 +20,10 @@ import {
   DataTableHeader,
   DataTableRow,
 } from "@/components/dashboard/data-table";
+import {
+  KeywordRankingSparkline,
+  type KeywordRankingSparklinePoint,
+} from "@/components/keywords/keyword-ranking-sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatRankingPosition } from "@/lib/ranking-position";
@@ -34,6 +38,7 @@ export interface KeywordSnapshotTableRow {
   id: string;
   latestPosition: number | null;
   priority: string | null;
+  rankingPoints: KeywordRankingSparklinePoint[];
   tags: string[];
   term: string;
 }
@@ -43,6 +48,7 @@ type SortKey =
   | "domainUrl"
   | "priority"
   | "latestPosition"
+  | "trend"
   | "clicks"
   | "ctr";
 type SortDirection = "asc" | "desc";
@@ -57,6 +63,7 @@ const columns: { key: SortKey; label: string }[] = [
   { key: "domainUrl", label: "Domain" },
   { key: "priority", label: "Priority" },
   { key: "latestPosition", label: "Position" },
+  { key: "trend", label: "Trend" },
   { key: "clicks", label: "Clicks" },
   { key: "ctr", label: "CTR" },
 ];
@@ -147,6 +154,9 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
                   {formatRankingPosition(row.latestPosition)}
                 </DataTableCell>
                 <DataTableCell>
+                  <KeywordRankingSparkline points={row.rankingPoints} />
+                </DataTableCell>
+                <DataTableCell>
                   {formatNullableNumber(row.clicks)}
                 </DataTableCell>
                 <DataTableCell>{formatCtr(row.ctr)}</DataTableCell>
@@ -188,6 +198,9 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
               {row.category ?? "Uncategorized"}
               {row.tags.length > 0 ? ` · ${row.tags.join(", ")}` : ""}
             </p>
+            <div className="mt-4">
+              <KeywordRankingSparkline points={row.rankingPoints} />
+            </div>
             <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
               <Metric
                 label="Position"
@@ -311,6 +324,9 @@ function compareRows(
 function getSortValue(row: KeywordSnapshotTableRow, key: SortKey) {
   if (key === "priority") {
     return priorityRank[row.priority ?? ""] ?? 0;
+  }
+  if (key === "trend") {
+    return row.rankingPoints.length;
   }
 
   return row[key];

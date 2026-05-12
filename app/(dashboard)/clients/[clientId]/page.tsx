@@ -41,7 +41,10 @@ import {
 } from "@/lib/ranking-position";
 import { getClientOverview } from "@/lib/services/client.service";
 import { getKeywordsByClient } from "@/lib/services/keyword.service";
-import { getRankingChangesForClient } from "@/lib/services/ranking.service";
+import {
+  getKeywordRankingSeriesForClient,
+  getRankingChangesForClient,
+} from "@/lib/services/ranking.service";
 import { cn } from "@/lib/utils";
 
 interface ClientDetailPageProps {
@@ -68,10 +71,11 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   const { gsc, reason, window = "30" } = await searchParams;
   const movementWindow = window === "7" ? 7 : 30;
 
-  const [client, keywords, rankingChanges] = await Promise.all([
+  const [client, keywords, rankingChanges, rankingSeries] = await Promise.all([
     getClientOverview(clientId).catch(() => null),
     getKeywordsByClient(clientId),
     getRankingChangesForClient(clientId, movementWindow),
+    getKeywordRankingSeriesForClient(clientId, 30),
   ]);
 
   if (!client) {
@@ -87,6 +91,9 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
   const losers = rankingChanges.filter(
     (change) => change.change !== null && change.change < 0
   );
+  const rankingSeriesByKeywordId = new Map(
+    rankingSeries.map((series) => [series.keywordId, series.points])
+  );
   const keywordSnapshotRows: KeywordSnapshotTableRow[] = keywords.map(
     (keyword) => {
       const latestSnapshot = keyword.snapshots[0];
@@ -99,6 +106,7 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
         priority: keyword.priority,
         tags: keyword.tags,
         latestPosition: getRankingPosition(latestSnapshot),
+        rankingPoints: rankingSeriesByKeywordId.get(keyword.id) ?? [],
         clicks: latestSnapshot?.clicks ?? null,
         ctr: latestSnapshot?.ctr ?? null,
         detailHref: `/clients/${client.id}/keywords/${keyword.id}` as Route,
