@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/dashboard/page-header";
+import { GscKeywordImportPanel } from "@/components/keywords/gsc-keyword-import-panel";
 import { KeywordBulkForm } from "@/components/keywords/keyword-bulk-form";
 import { KeywordFilters } from "@/components/keywords/keyword-filters";
 import {
@@ -81,6 +82,10 @@ async function Keywords({ params, searchParams }: KeywordsPageProps) {
       : undefined;
   const filterStaleAfterDays = parseStale(search.stale);
   const statusParam = normalizeStatusParam(search.status);
+  const hasRequiredGscScope =
+    client.gscConnection?.scopes.includes(
+      "https://www.googleapis.com/auth/webmasters.readonly"
+    ) ?? false;
   const filterStatus = statusParam === "all" ? undefined : statusParam;
 
   const filter: KeywordFilter = {
@@ -127,21 +132,34 @@ async function Keywords({ params, searchParams }: KeywordsPageProps) {
         title={`${client.name} keywords`}
       />
 
-      <Card className="bg-card/95">
-        <CardHeader>
-          <CardTitle>Bulk add keywords</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <KeywordBulkForm
-            clientId={client.id}
-            defaultDomainId={filterDomainId}
-            domains={domains.map((domain) => ({
-              id: domain.id,
-              url: domain.url,
-            }))}
-          />
-        </CardContent>
-      </Card>
+      <section className="grid gap-6 xl:grid-cols-2">
+        <Card className="bg-card/95">
+          <CardHeader>
+            <CardTitle>Bulk add keywords</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KeywordBulkForm
+              clientId={client.id}
+              defaultDomainId={filterDomainId}
+              domains={domains.map((domain) => ({
+                id: domain.id,
+                url: domain.url,
+              }))}
+            />
+          </CardContent>
+        </Card>
+
+        <GscKeywordImportPanel
+          clientId={client.id}
+          defaultDomainId={filterDomainId}
+          domains={domains.map((domain) => ({
+            id: domain.id,
+            url: domain.url,
+          }))}
+          hasGscConnection={Boolean(client.gscConnection)}
+          hasRequiredScope={hasRequiredGscScope}
+        />
+      </section>
 
       <Card className="bg-card/95">
         <CardHeader>
