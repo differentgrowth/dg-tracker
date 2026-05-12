@@ -249,6 +249,12 @@ Daily rank refreshes and import workflows should run outside normal page request
 
 Cron handlers should be small orchestration layers that call `lib/services/*` functions. Keep provider-specific code isolated so a dedicated job runtime can be introduced later if needed.
 
+### Scheduled GSC sync
+
+Phase 5 starts with a Vercel Cron endpoint at `/api/cron/gsc-sync`. The cron runs daily at 05:00 UTC and syncs every active client with a connected GSC property. Set `CRON_SECRET` in Vercel to authorize the cron request; Vercel sends it as a bearer token in the `Authorization` header.
+
+The scheduled sync lookback is controlled by `GSC_SCHEDULED_SYNC_DAYS`. It defaults to `1` day and is capped at `7` days so routine jobs can catch short GSC delays without accidentally launching broad backfills. For one-off authorized requests, `/api/cron/gsc-sync?days=3` can temporarily choose a value in the same 1-7 day range.
+
 ## Planned Features
 
 - **Client management**: agencies, clients, sites/properties, contacts, and status.
