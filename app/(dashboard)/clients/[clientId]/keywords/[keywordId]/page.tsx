@@ -4,7 +4,16 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeader,
+  DataTableRow,
+} from "@/components/dashboard/data-table";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { KeywordPerformanceChart } from "@/components/keywords/keyword-performance-chart";
 import { KeywordRankingChart } from "@/components/keywords/keyword-ranking-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +60,13 @@ async function KeywordDetail({ params }: KeywordDetailPageProps) {
     position: getRankingPosition(snapshot),
     clicks: snapshot.clicks,
     ctr: snapshot.ctr,
+  }));
+  const performancePoints = snapshots.map((snapshot) => ({
+    date: snapshot.date.toISOString().slice(0, 10),
+    clicks: snapshot.clicks,
+    impressions: snapshot.impressions,
+    ctrPercent:
+      snapshot.ctr === null ? null : Number((snapshot.ctr * 100).toFixed(2)),
   }));
 
   return (
@@ -130,6 +146,27 @@ async function KeywordDetail({ params }: KeywordDetailPageProps) {
           </dl>
         </CardContent>
       </Card>
+
+      <Card className="bg-card/95">
+        <CardHeader>
+          <CardTitle>Search performance history</CardTitle>
+          <p className="mt-1 text-muted-foreground text-sm">
+            Clicks, impressions, and CTR from synced keyword snapshots.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <KeywordPerformanceChart points={performancePoints} />
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/95">
+        <CardHeader>
+          <CardTitle>Raw snapshots</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SnapshotTable snapshots={keyword.snapshots} />
+        </CardContent>
+      </Card>
     </>
   );
 }
@@ -191,4 +228,55 @@ function formatNullableDate(date: Date | null) {
   return date
     ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date)
     : "Not checked";
+}
+
+function SnapshotTable({
+  snapshots,
+}: {
+  snapshots: NonNullable<
+    Awaited<ReturnType<typeof getKeywordForClient>>
+  >["snapshots"];
+}) {
+  if (snapshots.length === 0) {
+    return (
+      <div className="border p-6 text-center text-muted-foreground text-sm">
+        No raw snapshots have synced for this keyword yet.
+      </div>
+    );
+  }
+
+  return (
+    <DataTable>
+      <DataTableHeader>
+        <DataTableRow>
+          <DataTableHead>Date</DataTableHead>
+          <DataTableHead>Source</DataTableHead>
+          <DataTableHead>Position</DataTableHead>
+          <DataTableHead>Clicks</DataTableHead>
+          <DataTableHead>Impressions</DataTableHead>
+          <DataTableHead>CTR</DataTableHead>
+          <DataTableHead>URL</DataTableHead>
+        </DataTableRow>
+      </DataTableHeader>
+      <DataTableBody>
+        {snapshots.map((snapshot) => (
+          <DataTableRow key={snapshot.id}>
+            <DataTableCell>{formatNullableDate(snapshot.date)}</DataTableCell>
+            <DataTableCell>{snapshot.source}</DataTableCell>
+            <DataTableCell>
+              {formatRankingPosition(getRankingPosition(snapshot))}
+            </DataTableCell>
+            <DataTableCell>{formatWholeNumber(snapshot.clicks)}</DataTableCell>
+            <DataTableCell>
+              {formatWholeNumber(snapshot.impressions)}
+            </DataTableCell>
+            <DataTableCell>{formatPercent(snapshot.ctr)}</DataTableCell>
+            <DataTableCell>
+              <p className="max-w-72 truncate">{snapshot.url ?? "—"}</p>
+            </DataTableCell>
+          </DataTableRow>
+        ))}
+      </DataTableBody>
+    </DataTable>
+  );
 }
