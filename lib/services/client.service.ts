@@ -47,6 +47,12 @@ export async function getClientById(id: string) {
         orderBy: { createdAt: "desc" },
         take: 5,
       },
+      gscConnection: {
+        select: {
+          id: true,
+          scopes: true,
+        },
+      },
     },
   });
 
