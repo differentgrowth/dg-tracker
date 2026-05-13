@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { RiShieldUserLine } from "@remixicon/react";
 
+import { UserCreateForm } from "@/components/admin/user-create-form";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,9 +12,9 @@ export default function AdminPage() {
   return (
     <>
       <PageHeader
-        description="Provisioning is admin-only. For now, user creation remains an explicit CLI workflow until the admin UI is built."
+        description="Create internal DG Tracker users and assign the access level they need."
         eyebrow="Admin"
-        title="Provisioning desk"
+        title="User provisioning"
       />
       <Suspense fallback={<Skeleton className="h-48 w-full" />}>
         <AdminCard />
@@ -30,18 +31,15 @@ async function AdminCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <RiShieldUserLine aria-hidden="true" className="size-4" />
-          Manual user provisioning
+          Create user
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm leading-6">
-        <p>
+      <CardContent className="space-y-6">
+        <p className="text-muted-foreground text-sm leading-6">
           Signed in as <strong>{session.user.email}</strong>. Use the existing
-          CLI command below to provision teammates while the admin CRUD surface
-          is still pending.
+          admin session to provision teammates.
         </p>
-        <pre className="overflow-x-auto border bg-muted p-4 font-mono text-xs">
-          pnpm user:create
-        </pre>
+        <UserCreateForm />
       </CardContent>
     </Card>
   );

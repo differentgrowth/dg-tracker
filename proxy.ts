@@ -7,8 +7,8 @@ const PUBLIC_PATHS = new Set<string>(["/login"]);
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Public sign-up is intentionally disabled. Users are added manually
-  // via scripts/create-user.ts. Block the sign-up endpoint so it cannot
+  // Public sign-up is intentionally disabled. Users are added through
+  // admin-only provisioning code. Block the sign-up endpoint so it cannot
   // be exercised over HTTP, even if someone discovers the URL.
   if (pathname.startsWith("/api/auth/sign-up")) {
     return NextResponse.json(

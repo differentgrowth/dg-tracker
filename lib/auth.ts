@@ -13,7 +13,7 @@ export const auth = betterAuth({
     enabled: true,
     // Public sign-up is blocked by middleware so the route is rejected
     // at the edge. Server-side `auth.api.signUpEmail` is still callable
-    // from CLI scripts (see scripts/create-user.ts).
+    // from admin-only provisioning code.
     disableSignUp: false,
     minPasswordLength: 12,
     maxPasswordLength: 128,

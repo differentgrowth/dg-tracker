@@ -17,7 +17,6 @@
     "test": "node --import tsx --test",
     "pretypecheck": "prisma generate",
     "typecheck": "tsc --noEmit",
-    "user:create": "tsx scripts/create-user.ts",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
