@@ -8,14 +8,15 @@ import {
   RiBarChartBoxLine,
   RiDashboardLine,
   RiFileChartLine,
-  RiFolderChartLine,
   RiSettings3Line,
   RiSparklingLine,
+  RiUserCommunityLine,
 } from "@remixicon/react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardNavLink } from "@/components/dashboard/dashboard-nav-link";
 import { SidebarUser } from "@/components/dashboard/sidebar-user";
+import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -32,6 +33,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -45,7 +47,7 @@ const navItems: { href: Route; icon: React.ReactNode; label: string }[] = [
   },
   {
     href: "/clients",
-    icon: <RiFolderChartLine aria-hidden="true" />,
+    icon: <RiUserCommunityLine aria-hidden="true" />,
     label: "Clients",
   },
   {
@@ -65,8 +67,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <SidebarProvider>
       <Sidebar className="border-sidebar-border/80" collapsible="icon">
         <SidebarHeader className="border-sidebar-border border-b">
-          <Link className="flex items-center gap-3 px-2 py-2" href="/dashboard">
-            <span className="flex size-9 items-center justify-center border bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--secondary)]">
+          <Link
+            className={cn(
+              "flex h-11 w-full items-center gap-3 px-2 py-2 outline-hidden ring-sidebar-ring transition-[width,height,padding,gap]",
+              "focus-visible:ring-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-0"
+            )}
+            href="/dashboard"
+          >
+            <span
+              className={cn(
+                "flex size-9 items-center justify-center border bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--secondary)]",
+                "group-data-[collapsible=icon]:size-6 group-data-[collapsible=icon]:shrink-0 group-data-[collapsible=icon]:-translate-x-px group-data-[collapsible=icon]:-translate-y-px group-data-[collapsible=icon]:shadow-[2px_2px_0_0_var(--secondary)]"
+              )}
+            >
               <RiBarChartBoxLine aria-hidden="true" className="size-4" />
             </span>
             <span className="grid leading-tight group-data-[collapsible=icon]:hidden">
@@ -125,6 +138,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               Internal SEO rank tracking
             </p>
           </div>
+          <ThemeToggleButton />
           <SignOutButton />
         </header>
         <div className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-[radial-gradient(circle_at_top_right,var(--primary)_0,transparent_18rem),linear-gradient(135deg,transparent_0,transparent_72%,var(--muted)_72%)]/100%_100%">
