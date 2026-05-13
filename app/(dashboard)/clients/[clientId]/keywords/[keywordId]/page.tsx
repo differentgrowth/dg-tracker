@@ -13,6 +13,7 @@ import {
   DataTableRow,
 } from "@/components/dashboard/data-table";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import { KeywordPerformanceChart } from "@/components/keywords/keyword-performance-chart";
 import { KeywordRankingChart } from "@/components/keywords/keyword-ranking-chart";
 import { Badge } from "@/components/ui/badge";
@@ -90,7 +91,7 @@ async function KeywordDetail({ params }: KeywordDetailPageProps) {
         }
         description={`${keyword.domain.url} ranking history from synced snapshots.`}
         eyebrow="Keyword chart"
-        title={keyword.term}
+        title={<KeywordBadge term={keyword.term} />}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

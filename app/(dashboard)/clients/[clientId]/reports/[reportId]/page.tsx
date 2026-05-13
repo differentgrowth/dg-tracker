@@ -18,6 +18,7 @@ import {
 } from "@/components/dashboard/data-table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -240,7 +241,7 @@ function MovementTable({
               {items.map((item) => (
                 <DataTableRow key={item.keywordId}>
                   <DataTableCell>
-                    <p className="max-w-56 truncate font-medium">{item.term}</p>
+                    <KeywordBadge className="max-w-56" term={item.term} />
                     <p className="max-w-56 truncate text-muted-foreground text-xs">
                       {item.domainUrl}
                     </p>

@@ -11,6 +11,7 @@ import {
   DataTableRow,
 } from "@/components/dashboard/data-table";
 import { ArchiveKeywordButton } from "@/components/keywords/archive-keyword-button";
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import { KeywordEditForm } from "@/components/keywords/keyword-edit-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,7 @@ export function KeywordTable({ clientId, rows }: KeywordTableProps) {
               <DataTableRow key={row.id}>
                 <DataTableCell className="whitespace-normal" colSpan={8}>
                   <div className="flex flex-col gap-3">
-                    <p className="font-medium text-sm">{row.term}</p>
+                    <KeywordBadge term={row.term} />
                     <KeywordEditForm
                       clientId={clientId}
                       defaults={{
@@ -91,7 +92,7 @@ export function KeywordTable({ clientId, rows }: KeywordTableProps) {
             >
               <DataTableCell>
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">{row.term}</p>
+                  <KeywordBadge term={row.term} />
                   {isArchived ? (
                     <Badge variant="outline">archived</Badge>
                   ) : null}

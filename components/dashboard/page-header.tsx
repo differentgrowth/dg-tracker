@@ -2,7 +2,7 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   description: string;
   eyebrow?: string;
-  title: string;
+  title: React.ReactNode;
 }
 
 export function PageHeader({

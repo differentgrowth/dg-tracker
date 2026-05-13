@@ -1,7 +1,15 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,11 +42,15 @@ export function KeywordBulkForm({
   const [state, formAction, isPending] = useActionState(action, idleState);
   const formRef = useRef<HTMLFormElement>(null);
   const [selectResetKey, setSelectResetKey] = useState(0);
+  const [keywordTerms, setKeywordTerms] = useState<string[]>([]);
+  const [keywordDraft, setKeywordDraft] = useState("");
 
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
       setSelectResetKey((current) => current + 1);
+      setKeywordTerms([]);
+      setKeywordDraft("");
     }
   }, [state.status]);
 
@@ -143,28 +155,13 @@ export function KeywordBulkForm({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="terms">
-          Keywords
-          <span aria-hidden="true" className="ml-1 text-destructive">
-            *
-          </span>
-        </Label>
-        <Textarea
-          id="terms"
-          name="terms"
-          placeholder={"One keyword per line\nor separated by commas"}
-          required
-          rows={8}
-        />
-        <p className="text-muted-foreground text-xs">
-          Pasted keywords are trimmed, lowercased, deduplicated, and merged with
-          existing terms for the selected domain.
-        </p>
-        {fieldError("terms") ? (
-          <p className="text-destructive text-sm">{fieldError("terms")}</p>
-        ) : null}
-      </div>
+      <KeywordTermsField
+        draft={keywordDraft}
+        error={fieldError("terms")}
+        onDraftChange={setKeywordDraft}
+        onTermsChange={setKeywordTerms}
+        terms={keywordTerms}
+      />
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className="flex flex-col gap-2">
@@ -243,13 +240,11 @@ export function KeywordBulkForm({
             {state.summary.created} added · {state.summary.skippedCount} skipped
           </AlertTitle>
           <AlertDescription>
-            {state.summary.skippedCount === 0
-              ? "Every keyword in the batch was new for the selected domain."
-              : `Already existed: ${state.summary.duplicateTerms
-                  .slice(0, 5)
-                  .join(
-                    ", "
-                  )}${state.summary.duplicateTerms.length > 5 ? "…" : ""}`}
+            {state.summary.skippedCount === 0 ? (
+              "Every keyword in the batch was new for the selected domain."
+            ) : (
+              <DuplicateKeywordBadges terms={state.summary.duplicateTerms} />
+            )}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -260,5 +255,149 @@ export function KeywordBulkForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+interface KeywordTermsFieldProps {
+  draft: string;
+  error?: string;
+  onDraftChange: (draft: string) => void;
+  onTermsChange: (terms: string[]) => void;
+  terms: string[];
+}
+
+const keywordDraftSeparatorPattern = /[\r\n,]+/;
+const whitespacePattern = /\s+/g;
+
+function KeywordTermsField({
+  draft,
+  error,
+  onDraftChange,
+  onTermsChange,
+  terms,
+}: KeywordTermsFieldProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const submittedTerms = serializeKeywordTerms(terms, draft);
+
+  function commitDraft() {
+    const term = normalizeKeywordTerm(draft);
+    if (term) {
+      onTermsChange(appendUniqueTerms(terms, [term]));
+    }
+    onDraftChange("");
+  }
+
+  function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    const nextValue = event.target.value;
+
+    if (!keywordDraftSeparatorPattern.test(nextValue)) {
+      onDraftChange(nextValue);
+      return;
+    }
+
+    const parts = nextValue.split(keywordDraftSeparatorPattern);
+    const nextDraft = parts.at(-1) ?? "";
+    const completedTerms = parts.slice(0, -1).map(normalizeKeywordTerm);
+
+    onTermsChange(appendUniqueTerms(terms, completedTerms));
+    onDraftChange(nextDraft);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitDraft();
+      return;
+    }
+
+    if (event.key === "Backspace" && draft.length === 0 && terms.length > 0) {
+      event.preventDefault();
+      const nextTerms = terms.slice(0, -1);
+      const [lastTerm] = terms.slice(-1);
+
+      onTermsChange(nextTerms);
+      onDraftChange(lastTerm ?? "");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="terms">
+        Keywords
+        <span aria-hidden="true" className="ml-1 text-destructive">
+          *
+        </span>
+      </Label>
+      <input name="terms" type="hidden" value={submittedTerms} />
+      <div className="min-h-32 border border-transparent border-b-input py-2 transition-colors focus-within:border-b-ring has-aria-invalid:border-b-destructive">
+        <div className="flex flex-wrap items-center gap-2">
+          {terms.map((term) => (
+            <KeywordBadge key={term} term={term} />
+          ))}
+          <Textarea
+            aria-invalid={Boolean(error)}
+            className="min-h-8 min-w-60 flex-1 border-b-transparent py-1 focus-visible:border-b-transparent"
+            id="terms"
+            onBlur={commitDraft}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              terms.length === 0
+                ? "One keyword per line or separated by commas"
+                : "Add another keyword"
+            }
+            ref={textareaRef}
+            rows={1}
+            value={draft}
+          />
+        </div>
+      </div>
+      <p className="text-muted-foreground text-xs">
+        Type a comma or press Enter to turn each keyword into a badge. Pasted
+        keywords are trimmed, lowercased, deduplicated, and merged with existing
+        terms for the selected domain.
+      </p>
+      {error ? <p className="text-destructive text-sm">{error}</p> : null}
+    </div>
+  );
+}
+
+function serializeKeywordTerms(terms: string[], draft: string) {
+  const draftTerm = normalizeKeywordTerm(draft);
+  const allTerms = draftTerm ? appendUniqueTerms(terms, [draftTerm]) : terms;
+
+  return allTerms.join("\n");
+}
+
+function appendUniqueTerms(currentTerms: string[], nextTerms: string[]) {
+  const seen = new Set(currentTerms);
+  const result = [...currentTerms];
+
+  for (const term of nextTerms) {
+    if (!term || seen.has(term)) {
+      continue;
+    }
+    seen.add(term);
+    result.push(term);
+  }
+
+  return result;
+}
+
+function normalizeKeywordTerm(value: string) {
+  return value.replace(whitespacePattern, " ").trim().toLowerCase();
+}
+
+function DuplicateKeywordBadges({ terms }: { terms: string[] }) {
+  const visibleTerms = terms.slice(0, 5);
+
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      <span>Already existed:</span>
+      {visibleTerms.map((term) => (
+        <KeywordBadge key={term} term={term} />
+      ))}
+      {terms.length > visibleTerms.length ? <span>…</span> : null}
+    </span>
   );
 }

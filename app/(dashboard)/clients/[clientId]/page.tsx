@@ -19,6 +19,7 @@ import {
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { GscConnectionPanel } from "@/components/gsc/gsc-connection-panel";
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import {
   KeywordSnapshotTable,
   type KeywordSnapshotTableRow,
@@ -102,7 +103,6 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
         id: keyword.id,
         term: keyword.term,
         category: keyword.category,
-        domainUrl: keyword.domain.url,
         priority: keyword.priority,
         tags: keyword.tags,
         latestPosition: getRankingPosition(latestSnapshot),
@@ -416,7 +416,7 @@ function MovementList({ changes, title }: MovementListProps) {
               className="flex items-center justify-between gap-4"
               key={change.keywordId}
             >
-              <span className="min-w-0 truncate text-sm">{change.term}</span>
+              <KeywordBadge className="min-w-0" term={change.term} />
               <Badge
                 variant={
                   change.change && change.change > 0 ? "default" : "destructive"

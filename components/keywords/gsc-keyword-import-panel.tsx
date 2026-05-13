@@ -7,6 +7,7 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 
 import { toast } from "sonner";
 
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -347,7 +348,7 @@ function CandidateRow({
         />
       </TableCell>
       <TableCell className="whitespace-normal">
-        <span className="font-medium">{candidate.query}</span>
+        <KeywordBadge term={candidate.query} />
       </TableCell>
       <TableCell>{candidate.clicks}</TableCell>
       <TableCell>{candidate.impressions}</TableCell>
@@ -385,17 +386,29 @@ function ImportResultAlert({ state }: { state: ImportGscKeywordState }) {
           skipped
         </AlertTitle>
         <AlertDescription>
-          {state.summary.skippedCount === 0
-            ? "Selected GSC queries are now tracked keywords."
-            : `Already existed: ${state.summary.duplicateTerms
-                .slice(0, 5)
-                .join(", ")}${
-                state.summary.duplicateTerms.length > 5 ? "…" : ""
-              }`}
+          {state.summary.skippedCount === 0 ? (
+            "Selected GSC queries are now tracked keywords."
+          ) : (
+            <DuplicateKeywordBadges terms={state.summary.duplicateTerms} />
+          )}
         </AlertDescription>
       </Alert>
     );
   }
 
   return null;
+}
+
+function DuplicateKeywordBadges({ terms }: { terms: string[] }) {
+  const visibleTerms = terms.slice(0, 5);
+
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      <span>Already existed:</span>
+      {visibleTerms.map((term) => (
+        <KeywordBadge key={term} term={term} />
+      ))}
+      {terms.length > visibleTerms.length ? <span>…</span> : null}
+    </span>
+  );
 }

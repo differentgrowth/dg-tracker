@@ -2,7 +2,7 @@
 
 import type { Route } from "next";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -20,6 +20,7 @@ import {
   DataTableHeader,
   DataTableRow,
 } from "@/components/dashboard/data-table";
+import { KeywordBadge } from "@/components/keywords/keyword-badge";
 import {
   KeywordRankingSparkline,
   type KeywordRankingSparklinePoint,
@@ -34,7 +35,6 @@ export interface KeywordSnapshotTableRow {
   clicks: number | null;
   ctr: number | null;
   detailHref: Route;
-  domainUrl: string;
   id: string;
   latestPosition: number | null;
   priority: string | null;
@@ -45,12 +45,11 @@ export interface KeywordSnapshotTableRow {
 
 type SortKey =
   | "term"
-  | "domainUrl"
   | "priority"
   | "latestPosition"
-  | "trend"
   | "clicks"
-  | "ctr";
+  | "ctr"
+  | "trend";
 type SortDirection = "asc" | "desc";
 type PresentSortValue = string | number;
 
@@ -60,12 +59,11 @@ interface KeywordSnapshotTableProps {
 
 const columns: { key: SortKey; label: string }[] = [
   { key: "term", label: "Keyword" },
-  { key: "domainUrl", label: "Domain" },
   { key: "priority", label: "Priority" },
   { key: "latestPosition", label: "Position" },
-  { key: "trend", label: "Trend" },
   { key: "clicks", label: "Clicks" },
   { key: "ctr", label: "CTR" },
+  { key: "trend", label: "Trend" },
 ];
 
 const priorityRank: Record<string, number> = {
@@ -76,6 +74,9 @@ const priorityRank: Record<string, number> = {
 };
 
 export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
+  const isMobile = useKeywordSnapshotTableIsMobile();
+  const shouldRenderDesktop = isMobile === false || isMobile === null;
+  const shouldRenderMobile = isMobile === true;
   const [sort, setSort] = useState<{ direction: SortDirection; key: SortKey }>({
     direction: "desc",
     key: "priority",
@@ -98,38 +99,93 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
 
   return (
     <>
-      <div className="hidden md:block">
-        <DataTable>
-          <DataTableHeader>
-            <DataTableRow>
-              <DataTableHead className="w-10">
-                <span className="sr-only">Chart</span>
-              </DataTableHead>
-              {columns.map((column) => (
-                <DataTableHead
-                  aria-sort={getAriaSort(column.key, sort)}
-                  key={column.key}
-                >
-                  <SortButton
-                    activeDirection={
-                      sort.key === column.key ? sort.direction : null
-                    }
-                    label={column.label}
-                    onClick={() => toggleSort(column.key)}
-                    sortKey={column.key}
-                  />
-                </DataTableHead>
+      {shouldRenderDesktop ? (
+        <div className="hidden md:block">
+          <DataTable>
+            <DataTableHeader>
+              <DataTableRow>
+                {columns.map((column) => (
+                  <DataTableHead
+                    aria-sort={getAriaSort(column.key, sort)}
+                    key={column.key}
+                  >
+                    <SortButton
+                      activeDirection={
+                        sort.key === column.key ? sort.direction : null
+                      }
+                      label={column.label}
+                      onClick={() => toggleSort(column.key)}
+                      sortKey={column.key}
+                    />
+                  </DataTableHead>
+                ))}
+              </DataTableRow>
+            </DataTableHeader>
+            <DataTableBody>
+              {sortedRows.map((row) => (
+                <DataTableRow key={row.id}>
+                  <DataTableCell className="max-w-80">
+                    <div className="flex min-w-0 items-start gap-2">
+                      <Button
+                        aria-label={`View chart for ${row.term}`}
+                        className="mt-0.5"
+                        render={<Link href={row.detailHref} />}
+                        size="icon-xs"
+                        variant="ghost"
+                      >
+                        <RiArrowDropRightLine
+                          aria-hidden="true"
+                          className="size-4"
+                        />
+                      </Button>
+                      <div className="min-w-0">
+                        <KeywordBadge term={row.term} />
+                        <p className="truncate text-muted-foreground text-xs">
+                          {row.tags.length > 0
+                            ? row.tags.join(", ")
+                            : (row.category ?? "No tags")}
+                        </p>
+                      </div>
+                    </div>
+                  </DataTableCell>
+                  <DataTableCell>
+                    <Badge variant="secondary">{row.priority || "unset"}</Badge>
+                  </DataTableCell>
+                  <DataTableCell>
+                    {formatRankingPosition(row.latestPosition)}
+                  </DataTableCell>
+                  <DataTableCell>
+                    {formatNullableNumber(row.clicks)}
+                  </DataTableCell>
+                  <DataTableCell>{formatCtr(row.ctr)}</DataTableCell>
+                  <DataTableCell className="w-48">
+                    {isMobile === false ? (
+                      <KeywordRankingSparkline points={row.rankingPoints} />
+                    ) : null}
+                  </DataTableCell>
+                </DataTableRow>
               ))}
-            </DataTableRow>
-          </DataTableHeader>
-          <DataTableBody>
-            {sortedRows.map((row) => (
-              <DataTableRow key={row.id}>
-                <DataTableCell>
+            </DataTableBody>
+          </DataTable>
+        </div>
+      ) : null}
+
+      {shouldRenderMobile ? (
+        <div className="grid gap-3 md:hidden">
+          <MobileSortControls
+            onSortChange={toggleSort}
+            sortDirection={sort.direction}
+            sortKey={sort.key}
+          />
+          {sortedRows.map((row) => (
+            <article className="border p-4" key={row.id}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-2">
                   <Button
                     aria-label={`View chart for ${row.term}`}
+                    className="mt-0.5"
                     render={<Link href={row.detailHref} />}
-                    size="icon"
+                    size="icon-xs"
                     variant="ghost"
                   >
                     <RiArrowDropRightLine
@@ -137,83 +193,52 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
                       className="size-4"
                     />
                   </Button>
-                </DataTableCell>
-                <DataTableCell>
-                  <p className="font-medium">{row.term}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {row.tags.length > 0 ? row.tags.join(", ") : "No tags"}
-                  </p>
-                </DataTableCell>
-                <DataTableCell>
-                  <p className="max-w-52 truncate">{row.domainUrl}</p>
-                </DataTableCell>
-                <DataTableCell>
-                  <Badge variant="secondary">{row.priority || "unset"}</Badge>
-                </DataTableCell>
-                <DataTableCell>
-                  {formatRankingPosition(row.latestPosition)}
-                </DataTableCell>
-                <DataTableCell>
-                  <KeywordRankingSparkline points={row.rankingPoints} />
-                </DataTableCell>
-                <DataTableCell>
-                  {formatNullableNumber(row.clicks)}
-                </DataTableCell>
-                <DataTableCell>{formatCtr(row.ctr)}</DataTableCell>
-              </DataTableRow>
-            ))}
-          </DataTableBody>
-        </DataTable>
-      </div>
-
-      <div className="grid gap-3 md:hidden">
-        <MobileSortControls
-          onSortChange={toggleSort}
-          sortDirection={sort.direction}
-          sortKey={sort.key}
-        />
-        {sortedRows.map((row) => (
-          <article className="border p-4" key={row.id}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex min-w-0 items-start gap-2">
-                <Button
-                  aria-label={`View chart for ${row.term}`}
-                  className="mt-0.5"
-                  render={<Link href={row.detailHref} />}
-                  size="icon-xs"
-                  variant="ghost"
-                >
-                  <RiArrowDropRightLine aria-hidden="true" className="size-4" />
-                </Button>
-                <div className="min-w-0">
-                  <h3 className="truncate font-semibold text-sm">{row.term}</h3>
-                  <p className="truncate text-muted-foreground text-xs">
-                    {row.domainUrl}
-                  </p>
+                  <div className="min-w-0">
+                    <KeywordBadge term={row.term} />
+                  </div>
                 </div>
+                <Badge variant="secondary">{row.priority || "unset"}</Badge>
               </div>
-              <Badge variant="secondary">{row.priority || "unset"}</Badge>
-            </div>
-            <p className="mt-3 text-muted-foreground text-xs">
-              {row.category ?? "Uncategorized"}
-              {row.tags.length > 0 ? ` · ${row.tags.join(", ")}` : ""}
-            </p>
-            <div className="mt-4">
-              <KeywordRankingSparkline points={row.rankingPoints} />
-            </div>
-            <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
-              <Metric
-                label="Position"
-                value={formatRankingPosition(row.latestPosition)}
-              />
-              <Metric label="Clicks" value={formatNullableNumber(row.clicks)} />
-              <Metric label="CTR" value={formatCtr(row.ctr)} />
-            </dl>
-          </article>
-        ))}
-      </div>
+              <p className="mt-3 text-muted-foreground text-xs">
+                {row.category ?? "Uncategorized"}
+                {row.tags.length > 0 ? ` · ${row.tags.join(", ")}` : ""}
+              </p>
+              <div className="mt-4">
+                <KeywordRankingSparkline points={row.rankingPoints} />
+              </div>
+              <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <Metric
+                  label="Position"
+                  value={formatRankingPosition(row.latestPosition)}
+                />
+                <Metric
+                  label="Clicks"
+                  value={formatNullableNumber(row.clicks)}
+                />
+                <Metric label="CTR" value={formatCtr(row.ctr)} />
+              </dl>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </>
   );
+}
+
+function useKeywordSnapshotTableIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const updateIsMobile = () => setIsMobile(query.matches);
+
+    updateIsMobile();
+    query.addEventListener("change", updateIsMobile);
+
+    return () => query.removeEventListener("change", updateIsMobile);
+  }, []);
+
+  return isMobile;
 }
 
 function SortButton({
@@ -352,7 +377,7 @@ function getAriaSort(
 }
 
 function getDefaultDirection(key: SortKey): SortDirection {
-  if (key === "term" || key === "domainUrl" || key === "latestPosition") {
+  if (key === "term" || key === "latestPosition") {
     return "asc";
   }
 
