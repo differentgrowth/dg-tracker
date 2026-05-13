@@ -1,5 +1,6 @@
 "use server";
 
+import type { Route } from "next";
 import type { ActionResult } from "@/lib/actions/types";
 
 import { revalidatePath } from "next/cache";
@@ -53,5 +54,5 @@ export async function generateReportAction(
   revalidatePath(`/clients/${parsed.data.clientId}/reports`);
   revalidatePath(`/clients/${parsed.data.clientId}/reports/${reportId}`);
   revalidatePath("/reports");
-  redirect(`/clients/${parsed.data.clientId}/reports/${reportId}`);
+  redirect(`/clients/${parsed.data.clientId}/reports/${reportId}` as Route);
 }
