@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { RiComputerLine, RiMoonLine, RiSunLine } from "@remixicon/react";
+import {
+  ComputerIcon,
+  Moon01Icon,
+  Sun01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -43,7 +48,7 @@ export function ThemeToggleButton() {
           />
         }
       >
-        <Icon aria-hidden="true" />
+        <HugeiconsIcon aria-hidden="true" icon={Icon} />
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
@@ -60,10 +65,10 @@ const themeLabels: Record<ThemePreference, string> = {
 };
 
 const themeIcons = {
-  dark: RiMoonLine,
-  light: RiSunLine,
-  system: RiComputerLine,
-} satisfies Record<ThemePreference, typeof RiComputerLine>;
+  dark: Moon01Icon,
+  light: Sun01Icon,
+  system: ComputerIcon,
+} satisfies Record<ThemePreference, typeof ComputerIcon>;
 
 function getThemePreference(theme: string | undefined): ThemePreference {
   if (theme === "light" || theme === "dark" || theme === "system") {

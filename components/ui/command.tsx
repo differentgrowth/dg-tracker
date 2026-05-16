@@ -2,7 +2,8 @@
 
 import type * as React from "react";
 
-import { RiCheckLine, RiSearchLine } from "@remixicon/react";
+import { SearchIcon, Tick01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Command as CommandPrimitive } from "cmdk";
 
 import {
@@ -77,7 +78,10 @@ function CommandInput({
           {...props}
         />
         <InputGroupAddon>
-          <RiSearchLine className="size-3.5 shrink-0 opacity-50" />
+          <HugeiconsIcon
+            className="size-3.5 shrink-0 opacity-50"
+            icon={SearchIcon}
+          />
         </InputGroupAddon>
       </InputGroup>
     </div>
@@ -157,7 +161,10 @@ function CommandItem({
       {...props}
     >
       {children}
-      <RiCheckLine className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
+      <HugeiconsIcon
+        className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100"
+        icon={Tick01Icon}
+      />
     </CommandPrimitive.Item>
   );
 }

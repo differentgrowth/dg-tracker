@@ -1,10 +1,11 @@
 import type * as React from "react";
 
 import {
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-  RiMoreLine,
-} from "@remixicon/react";
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -78,7 +79,7 @@ function PaginationPrevious({
       size="default"
       {...props}
     >
-      <RiArrowLeftSLine data-icon="inline-start" />
+      <HugeiconsIcon data-icon="inline-start" icon={ArrowLeft01Icon} />
       <span className="hidden sm:block">{text}</span>
     </PaginationLink>
   );
@@ -97,7 +98,7 @@ function PaginationNext({
       {...props}
     >
       <span className="hidden sm:block">{text}</span>
-      <RiArrowRightSLine data-icon="inline-end" />
+      <HugeiconsIcon data-icon="inline-end" icon={ArrowRight01Icon} />
     </PaginationLink>
   );
 }
@@ -116,7 +117,7 @@ function PaginationEllipsis({
       data-slot="pagination-ellipsis"
       {...props}
     >
-      <RiMoreLine />
+      <HugeiconsIcon icon={MoreHorizontalIcon} />
       <span className="sr-only">More pages</span>
     </span>
   );

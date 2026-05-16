@@ -2,7 +2,8 @@
 
 import { type ComponentProps, useContext } from "react";
 
-import { RiSubtractLine } from "@remixicon/react";
+import { MinusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { OTPInput, OTPInputContext } from "input-otp";
 
 import { cn } from "@/lib/utils";
@@ -79,7 +80,7 @@ function InputOTPSeparator({ ...props }: ComponentProps<"div">) {
       data-slot="input-otp-separator"
       {...props}
     >
-      <RiSubtractLine />
+      <HugeiconsIcon icon={MinusSignIcon} />
     </div>
   );
 }

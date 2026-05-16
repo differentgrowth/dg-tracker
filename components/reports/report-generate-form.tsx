@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 
-import { RiCalendarLine } from "@remixicon/react";
+import { Calendar01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ function ReportDateField({
             />
           }
         >
-          <RiCalendarLine data-icon="inline-start" />
+          <HugeiconsIcon data-icon="inline-start" icon={Calendar01Icon} />
           {displayValue}
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">

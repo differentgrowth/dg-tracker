@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 
-import { RiArrowRightLine, RiPulseLine } from "@remixicon/react";
+import { Activity01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DataTable,
@@ -140,7 +141,11 @@ async function DashboardOverview() {
           <Card className="border-primary/30 bg-primary/10 shadow-[8px_8px_0_0_var(--secondary)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <RiPulseLine aria-hidden="true" className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  className="size-4"
+                  icon={Activity01Icon}
+                />
                 MVP progress
               </CardTitle>
             </CardHeader>
@@ -153,7 +158,7 @@ async function DashboardOverview() {
               </p>
               <Button render={<Link href="/clients?status=active" />} size="sm">
                 Review active clients
-                <RiArrowRightLine aria-hidden="true" />
+                <HugeiconsIcon aria-hidden="true" icon={ArrowRight01Icon} />
               </Button>
             </CardContent>
           </Card>

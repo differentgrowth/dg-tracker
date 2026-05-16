@@ -1,5 +1,6 @@
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
+import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { cn } from "@/lib/utils";
 
@@ -39,13 +40,15 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        <RiArrowDownSLine
+        <HugeiconsIcon
           className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
           data-slot="accordion-trigger-icon"
+          icon={ArrowDown01Icon}
         />
-        <RiArrowUpSLine
+        <HugeiconsIcon
           className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
           data-slot="accordion-trigger-icon"
+          icon={ArrowUp01Icon}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

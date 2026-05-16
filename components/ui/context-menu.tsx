@@ -3,7 +3,8 @@
 import type * as React from "react";
 
 import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
-import { RiArrowRightSLine, RiCheckLine } from "@remixicon/react";
+import { ArrowRight01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { cn } from "@/lib/utils";
 
@@ -138,7 +139,7 @@ function ContextMenuSubTrigger({
       {...props}
     >
       {children}
-      <RiArrowRightSLine className="ml-auto" />
+      <HugeiconsIcon className="ml-auto" icon={ArrowRight01Icon} />
     </ContextMenuPrimitive.SubmenuTrigger>
   );
 }
@@ -178,7 +179,7 @@ function ContextMenuCheckboxItem({
     >
       <span className="pointer-events-none absolute right-2">
         <ContextMenuPrimitive.CheckboxItemIndicator>
-          <RiCheckLine />
+          <HugeiconsIcon icon={Tick01Icon} />
         </ContextMenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -217,7 +218,7 @@ function ContextMenuRadioItem({
     >
       <span className="pointer-events-none absolute right-2">
         <ContextMenuPrimitive.RadioItemIndicator>
-          <RiCheckLine />
+          <HugeiconsIcon icon={Tick01Icon} />
         </ContextMenuPrimitive.RadioItemIndicator>
       </span>
       {children}

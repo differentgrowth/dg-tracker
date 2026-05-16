@@ -4,7 +4,11 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { RiArrowUpDownLine, RiExternalLinkLine } from "@remixicon/react";
+import {
+  ArrowUpDownIcon,
+  ArrowUpRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { ArchiveClientButton } from "@/components/clients/archive-client-button";
 import { DeleteArchivedClientButton } from "@/components/clients/delete-archived-client-button";
@@ -250,7 +254,10 @@ async function ClientDetail({ params, searchParams }: ClientDetailPageProps) {
               <Empty className="border">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
-                    <RiExternalLinkLine aria-hidden="true" />
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={ArrowUpRight01Icon}
+                    />
                   </EmptyMedia>
                   <EmptyTitle>No keywords tracked</EmptyTitle>
                   <EmptyDescription>
@@ -377,7 +384,11 @@ function MovementCard({
     <Card className="bg-card/95">
       <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
         <CardTitle className="flex items-center gap-2">
-          <RiArrowUpDownLine aria-hidden="true" className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="size-4"
+            icon={ArrowUpDownIcon}
+          />
           Movement
         </CardTitle>
         <nav aria-label="Movement window" className="flex border">

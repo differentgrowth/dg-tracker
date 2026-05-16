@@ -3,7 +3,12 @@
 import { type ComponentPropsWithRef, useRef } from "react";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
-import { RiArrowDownSLine, RiCheckLine, RiCloseLine } from "@remixicon/react";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  Tick01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +37,10 @@ function ComboboxTrigger({
       {...props}
     >
       {children}
-      <RiArrowDownSLine className="pointer-events-none size-3.5 text-muted-foreground" />
+      <HugeiconsIcon
+        className="pointer-events-none size-3.5 text-muted-foreground"
+        icon={ArrowDown01Icon}
+      />
     </ComboboxPrimitive.Trigger>
   );
 }
@@ -45,7 +53,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       render={<InputGroupButton size="icon-xs" variant="ghost" />}
       {...props}
     >
-      <RiCloseLine className="pointer-events-none" />
+      <HugeiconsIcon className="pointer-events-none" icon={Cancel01Icon} />
     </ComboboxPrimitive.Clear>
   );
 }
@@ -155,7 +163,7 @@ function ComboboxItem({
           <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />
         }
       >
-        <RiCheckLine className="pointer-events-none" />
+        <HugeiconsIcon className="pointer-events-none" icon={Tick01Icon} />
       </ComboboxPrimitive.ItemIndicator>
     </ComboboxPrimitive.Item>
   );
@@ -260,7 +268,7 @@ function ComboboxChip({
           data-slot="combobox-chip-remove"
           render={<Button size="icon-xs" variant="ghost" />}
         >
-          <RiCloseLine className="pointer-events-none" />
+          <HugeiconsIcon className="pointer-events-none" icon={Cancel01Icon} />
         </ComboboxPrimitive.ChipRemove>
       )}
     </ComboboxPrimitive.Chip>

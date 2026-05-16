@@ -4,10 +4,11 @@ import type * as React from "react";
 
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import {
-  RiArrowDownSLine,
-  RiArrowUpSLine,
-  RiCheckLine,
-} from "@remixicon/react";
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Tick01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { cn } from "@/lib/utils";
 
@@ -54,7 +55,10 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <RiArrowDownSLine className="pointer-events-none size-3.5 text-muted-foreground" />
+          <HugeiconsIcon
+            className="pointer-events-none size-3.5 text-muted-foreground"
+            icon={ArrowDown01Icon}
+          />
         }
       />
     </SelectPrimitive.Trigger>
@@ -141,7 +145,7 @@ function SelectItem({
           <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />
         }
       >
-        <RiCheckLine className="pointer-events-none" />
+        <HugeiconsIcon className="pointer-events-none" icon={Tick01Icon} />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );
@@ -176,7 +180,7 @@ function SelectScrollUpButton({
       data-slot="select-scroll-up-button"
       {...props}
     >
-      <RiArrowUpSLine />
+      <HugeiconsIcon icon={ArrowUp01Icon} />
     </SelectPrimitive.ScrollUpArrow>
   );
 }
@@ -194,7 +198,7 @@ function SelectScrollDownButton({
       data-slot="select-scroll-down-button"
       {...props}
     >
-      <RiArrowDownSLine />
+      <HugeiconsIcon icon={ArrowDown01Icon} />
     </SelectPrimitive.ScrollDownArrow>
   );
 }

@@ -10,7 +10,8 @@ import {
   useState,
 } from "react";
 
-import { RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
+import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
@@ -212,7 +213,7 @@ function CarouselPrevious({
       variant={variant}
       {...props}
     >
-      <RiArrowLeftSLine />
+      <HugeiconsIcon aria-hidden="true" icon={ArrowLeft01Icon} />
       <span className="sr-only">Previous slide</span>
     </Button>
   );
@@ -242,7 +243,7 @@ function CarouselNext({
       variant={variant}
       {...props}
     >
-      <RiArrowRightSLine />
+      <HugeiconsIcon aria-hidden="true" icon={ArrowRight01Icon} />
       <span className="sr-only">Next slide</span>
     </Button>
   );

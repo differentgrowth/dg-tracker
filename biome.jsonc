@@ -26,7 +26,7 @@
               ":PACKAGE_WITH_PROTOCOL:",
               ":URL:",
               ":PACKAGE:",
-              ["@remixicon/react"],
+              ["@hugeicons/react", "@hugeicons/core-free-icons"],
               ":BLANK_LINE:",
               ["/**"],
               ":ALIAS:",

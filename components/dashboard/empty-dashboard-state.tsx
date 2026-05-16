@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { RiFolderAddLine } from "@remixicon/react";
+import { FolderAddIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,7 @@ export function EmptyDashboardState() {
     <Empty className="border bg-card/90 shadow-[8px_8px_0_0_var(--border)]">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <RiFolderAddLine aria-hidden="true" />
+          <HugeiconsIcon aria-hidden="true" icon={FolderAddIcon} />
         </EmptyMedia>
         <EmptyTitle>No clients yet</EmptyTitle>
         <EmptyDescription>

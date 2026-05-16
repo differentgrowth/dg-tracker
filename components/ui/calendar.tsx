@@ -11,10 +11,11 @@ import {
 } from "react";
 
 import {
-  RiArrowDownSLine,
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-} from "@remixicon/react";
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type DayButton,
   DayPicker,
@@ -185,14 +186,32 @@ function CalendarChevron({
   size?: number;
 }) {
   if (orientation === "left") {
-    return <RiArrowLeftSLine className={cn("size-4", className)} {...props} />;
+    return (
+      <HugeiconsIcon
+        className={cn("size-4", className)}
+        icon={ArrowLeft01Icon}
+        {...props}
+      />
+    );
   }
 
   if (orientation === "right") {
-    return <RiArrowRightSLine className={cn("size-4", className)} {...props} />;
+    return (
+      <HugeiconsIcon
+        className={cn("size-4", className)}
+        icon={ArrowRight01Icon}
+        {...props}
+      />
+    );
   }
 
-  return <RiArrowDownSLine className={cn("size-4", className)} {...props} />;
+  return (
+    <HugeiconsIcon
+      className={cn("size-4", className)}
+      icon={ArrowDown01Icon}
+      {...props}
+    />
+  );
 }
 
 function CalendarWeekNumber({

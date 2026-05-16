@@ -3,7 +3,8 @@ import type { Route } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 
-import { RiFileChartLine } from "@remixicon/react";
+import { FileChartColumnIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DataTable,
@@ -57,7 +58,7 @@ async function ReportsList() {
       <Empty className="border bg-card/95">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <RiFileChartLine aria-hidden="true" />
+            <HugeiconsIcon aria-hidden="true" icon={FileChartColumnIcon} />
           </EmptyMedia>
           <EmptyTitle>{overview.totalReports} reports generated</EmptyTitle>
           <EmptyDescription>

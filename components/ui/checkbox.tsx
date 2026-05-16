@@ -1,7 +1,8 @@
 "use client";
 
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
-import { RiCheckLine } from "@remixicon/react";
+import { Tick01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
         data-slot="checkbox-indicator"
       >
-        <RiCheckLine />
+        <HugeiconsIcon icon={Tick01Icon} />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );

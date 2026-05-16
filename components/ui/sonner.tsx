@@ -1,12 +1,13 @@
 "use client";
 
 import {
-  RiCheckboxCircleLine,
-  RiCloseCircleLine,
-  RiErrorWarningLine,
-  RiInformationLine,
-  RiLoaderLine,
-} from "@remixicon/react";
+  Alert01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  InformationCircleIcon,
+  Loading01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
@@ -17,11 +18,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       className="toaster group"
       icons={{
-        success: <RiCheckboxCircleLine className="size-4" />,
-        info: <RiInformationLine className="size-4" />,
-        warning: <RiErrorWarningLine className="size-4" />,
-        error: <RiCloseCircleLine className="size-4" />,
-        loading: <RiLoaderLine className="size-4 animate-spin" />,
+        success: (
+          <HugeiconsIcon className="size-4" icon={CheckmarkCircle01Icon} />
+        ),
+        info: <HugeiconsIcon className="size-4" icon={InformationCircleIcon} />,
+        warning: <HugeiconsIcon className="size-4" icon={Alert01Icon} />,
+        error: <HugeiconsIcon className="size-4" icon={CancelCircleIcon} />,
+        loading: (
+          <HugeiconsIcon className="size-4 animate-spin" icon={Loading01Icon} />
+        ),
       }}
       style={
         {

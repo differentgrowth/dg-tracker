@@ -4,7 +4,8 @@ import type * as React from "react";
 
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Menubar as MenubarPrimitive } from "@base-ui/react/menubar";
-import { RiCheckLine } from "@remixicon/react";
+import { Tick01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DropdownMenu,
@@ -132,7 +133,7 @@ function MenubarCheckboxItem({
     >
       <span className="pointer-events-none absolute left-3 flex size-4 items-center justify-center [&_svg:not([class*='size-'])]:size-4">
         <MenuPrimitive.CheckboxItemIndicator>
-          <RiCheckLine />
+          <HugeiconsIcon icon={Tick01Icon} />
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -166,7 +167,7 @@ function MenubarRadioItem({
     >
       <span className="pointer-events-none absolute left-3 flex size-4 items-center justify-center [&_svg:not([class*='size-'])]:size-4">
         <MenuPrimitive.RadioItemIndicator>
-          <RiCheckLine />
+          <HugeiconsIcon icon={Tick01Icon} />
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}

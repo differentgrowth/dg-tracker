@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
-import { RiShieldUserLine } from "@remixicon/react";
+import { ShieldUserIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { UserCreateForm } from "@/components/admin/user-create-form";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -30,7 +31,11 @@ async function AdminCard() {
     <Card className="bg-card/95">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <RiShieldUserLine aria-hidden="true" className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="size-4"
+            icon={ShieldUserIcon}
+          />
           Create user
         </CardTitle>
       </CardHeader>

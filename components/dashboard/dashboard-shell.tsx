@@ -4,14 +4,15 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 import {
-  RiArchiveLine,
-  RiBarChartBoxLine,
-  RiDashboardLine,
-  RiFileChartLine,
-  RiSettings3Line,
-  RiSparklingLine,
-  RiUserCommunityLine,
-} from "@remixicon/react";
+  Archive01Icon,
+  BarChartIcon,
+  DashboardCircleIcon,
+  FileChartColumnIcon,
+  Settings01Icon,
+  SparklesIcon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardNavLink } from "@/components/dashboard/dashboard-nav-link";
@@ -43,22 +44,22 @@ interface DashboardShellProps {
 const navItems: { href: Route; icon: React.ReactNode; label: string }[] = [
   {
     href: "/dashboard",
-    icon: <RiDashboardLine aria-hidden="true" />,
+    icon: <HugeiconsIcon aria-hidden="true" icon={DashboardCircleIcon} />,
     label: "Dashboard",
   },
   {
     href: "/clients",
-    icon: <RiUserCommunityLine aria-hidden="true" />,
+    icon: <HugeiconsIcon aria-hidden="true" icon={UserGroupIcon} />,
     label: "Clients",
   },
   {
     href: "/reports",
-    icon: <RiFileChartLine aria-hidden="true" />,
+    icon: <HugeiconsIcon aria-hidden="true" icon={FileChartColumnIcon} />,
     label: "Reports",
   },
   {
     href: "/admin",
-    icon: <RiSettings3Line aria-hidden="true" />,
+    icon: <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />,
     label: "Admin",
   },
 ];
@@ -81,7 +82,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 "group-data-[collapsible=icon]:size-6 group-data-[collapsible=icon]:shrink-0 group-data-[collapsible=icon]:-translate-x-px group-data-[collapsible=icon]:-translate-y-px group-data-[collapsible=icon]:shadow-[2px_2px_0_0_var(--secondary)]"
               )}
             >
-              <RiBarChartBoxLine aria-hidden="true" className="size-4" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                className="size-4"
+                icon={BarChartIcon}
+              />
             </span>
             <span className="grid leading-tight group-data-[collapsible=icon]:hidden">
               <span className="font-semibold text-sm uppercase tracking-[0.22em]">
@@ -114,7 +119,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <SidebarGroupContent>
               <div className="mx-2 border bg-sidebar p-3 shadow-[6px_6px_0_0_var(--border)]">
                 <div className="flex items-center gap-2 text-xs uppercase tracking-widest">
-                  <RiSparklingLine aria-hidden="true" className="size-3.5" />
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    className="size-3.5"
+                    icon={SparklesIcon}
+                  />
                   MVP progress
                 </div>
                 <p className="mt-2 text-muted-foreground text-xs leading-relaxed">
@@ -137,9 +146,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <SidebarTrigger />
             <Separator className="h-6" orientation="vertical" />
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <RiArchiveLine
+              <HugeiconsIcon
                 aria-hidden="true"
                 className="size-4 text-primary"
+                icon={Archive01Icon}
               />
               <p className="truncate font-medium text-sm uppercase tracking-[0.18em]">
                 Internal SEO rank tracking

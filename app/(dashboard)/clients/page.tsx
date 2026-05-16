@@ -3,7 +3,8 @@ import type { Route } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 
-import { RiAddLine, RiSearchLine } from "@remixicon/react";
+import { Add01Icon, SearchIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DataTable,
@@ -49,7 +50,7 @@ export default function ClientsPage({ searchParams }: ClientsPageProps) {
       <PageHeader
         actions={
           <Button render={<Link href="/clients/new" />}>
-            <RiAddLine aria-hidden="true" />
+            <HugeiconsIcon aria-hidden="true" icon={Add01Icon} />
             Add client
           </Button>
         }
@@ -110,9 +111,10 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
           <search>
             <form action="/clients" className="relative">
               <input name="status" type="hidden" value={selectedStatus} />
-              <RiSearchLine
+              <HugeiconsIcon
                 aria-hidden="true"
                 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                icon={SearchIcon}
               />
               <Input
                 className="w-full pl-9 md:w-72"
@@ -183,7 +185,7 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <RiSearchLine aria-hidden="true" />
+                <HugeiconsIcon aria-hidden="true" icon={SearchIcon} />
               </EmptyMedia>
               <EmptyTitle>No clients found</EmptyTitle>
               <EmptyDescription>
@@ -196,7 +198,7 @@ async function ClientsList({ searchParams }: ClientsPageProps) {
                 Clear filters
               </Button>
               <Button render={<Link href="/clients/new" />}>
-                <RiAddLine aria-hidden="true" />
+                <HugeiconsIcon aria-hidden="true" icon={Add01Icon} />
                 Add client
               </Button>
             </EmptyContent>

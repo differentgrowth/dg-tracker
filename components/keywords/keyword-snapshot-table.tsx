@@ -6,11 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import {
-  RiArrowDownLine,
-  RiArrowDropRightLine,
-  RiArrowUpDownLine,
-  RiArrowUpLine,
-} from "@remixicon/react";
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  ArrowUpDownIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DataTable,
@@ -133,9 +134,10 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
                         size="icon-xs"
                         variant="ghost"
                       >
-                        <RiArrowDropRightLine
+                        <HugeiconsIcon
                           aria-hidden="true"
                           className="size-4"
+                          icon={ArrowRight01Icon}
                         />
                       </Button>
                       <div className="min-w-0">
@@ -188,9 +190,10 @@ export function KeywordSnapshotTable({ rows }: KeywordSnapshotTableProps) {
                     size="icon-xs"
                     variant="ghost"
                   >
-                    <RiArrowDropRightLine
+                    <HugeiconsIcon
                       aria-hidden="true"
                       className="size-4"
+                      icon={ArrowRight01Icon}
                     />
                   </Button>
                   <div className="min-w-0">
@@ -252,12 +255,12 @@ function SortButton({
   onClick: () => void;
   sortKey: SortKey;
 }) {
-  let Icon = RiArrowUpDownLine;
+  let Icon: typeof ArrowUpDownIcon = ArrowUpDownIcon;
   if (activeDirection === "asc") {
-    Icon = RiArrowUpLine;
+    Icon = ArrowUp01Icon;
   }
   if (activeDirection === "desc") {
-    Icon = RiArrowDownLine;
+    Icon = ArrowDown01Icon;
   }
 
   return (
@@ -271,7 +274,7 @@ function SortButton({
       type="button"
     >
       {label}
-      <Icon aria-hidden="true" className="size-3.5" />
+      <HugeiconsIcon aria-hidden="true" className="size-3.5" icon={Icon} />
     </button>
   );
 }
@@ -298,10 +301,10 @@ function MobileSortControls({
         >
           {column.label}
           {sortKey === column.key && sortDirection === "asc" ? (
-            <RiArrowUpLine aria-hidden="true" />
+            <HugeiconsIcon aria-hidden="true" icon={ArrowUp01Icon} />
           ) : null}
           {sortKey === column.key && sortDirection === "desc" ? (
-            <RiArrowDownLine aria-hidden="true" />
+            <HugeiconsIcon aria-hidden="true" icon={ArrowDown01Icon} />
           ) : null}
         </Button>
       ))}
