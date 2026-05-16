@@ -16,6 +16,7 @@ import {
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { DashboardNavLink } from "@/components/dashboard/dashboard-nav-link";
 import { SidebarUser } from "@/components/dashboard/sidebar-user";
+import { SectionDivider } from "@/components/section-divider";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -66,7 +67,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <SidebarProvider>
       <Sidebar className="border-sidebar-border/80" collapsible="icon">
-        <SidebarHeader className="border-sidebar-border border-b">
+        <SidebarHeader className="pb-0">
           <Link
             className={cn(
               "flex h-11 w-full items-center gap-3 px-2 py-2 outline-hidden ring-sidebar-ring transition-[width,height,padding,gap]",
@@ -91,6 +92,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               </span>
             </span>
           </Link>
+          <SectionDivider className="h-2" corners={false} />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -123,26 +125,33 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="border-sidebar-border border-t">
+        <SidebarFooter className="pt-0">
+          <SectionDivider className="h-2" corners={false} />
           <SidebarUser />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 md:px-6">
-          <SidebarTrigger />
-          <Separator className="h-6" orientation="vertical" />
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <RiArchiveLine aria-hidden="true" className="size-4 text-primary" />
-            <p className="truncate font-medium text-sm uppercase tracking-[0.18em]">
-              Internal SEO rank tracking
-            </p>
+        <header className="sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+          <div className="flex h-16 items-center gap-3 px-4 md:px-6">
+            <SidebarTrigger />
+            <Separator className="h-6" orientation="vertical" />
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <RiArchiveLine
+                aria-hidden="true"
+                className="size-4 text-primary"
+              />
+              <p className="truncate font-medium text-sm uppercase tracking-[0.18em]">
+                Internal SEO rank tracking
+              </p>
+            </div>
+            <ThemeToggleButton />
+            <SignOutButton />
           </div>
-          <ThemeToggleButton />
-          <SignOutButton />
+          <SectionDivider className="h-3" />
         </header>
-        <div className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-[radial-gradient(circle_at_top_right,var(--primary)_0,transparent_18rem),linear-gradient(135deg,transparent_0,transparent_72%,var(--muted)_72%)]/100%_100%">
-          <div className="absolute inset-0 -z-0 opacity-[0.04] [background-image:linear-gradient(var(--foreground)_1px,transparent_1px),linear-gradient(90deg,var(--foreground)_1px,transparent_1px)] [background-size:32px_32px]" />
+        <div className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-stone-paper">
+          <div className="absolute inset-0 -z-0 bg-arch-grid opacity-[0.5]" />
           <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
             {children}
           </main>
