@@ -19,9 +19,9 @@ export function SectionDivider({
     >
       {corners ? (
         <>
-          <span className="-translate-x-1/2 -translate-y-1/2 absolute top-0 left-0 size-1.5 bg-foreground" />
-          <span className="-translate-y-1/2 absolute top-0 right-0 size-1.5 translate-x-1/2 bg-foreground" />
-          <span className="-translate-x-1/2 absolute bottom-0 left-0 size-1.5 translate-y-1/2 bg-foreground" />
+          <span className="absolute top-0 left-0 size-1.5 -translate-x-1/2 -translate-y-1/2 bg-foreground" />
+          <span className="absolute top-0 right-0 size-1.5 translate-x-1/2 -translate-y-1/2 bg-foreground" />
+          <span className="absolute bottom-0 left-0 size-1.5 -translate-x-1/2 translate-y-1/2 bg-foreground" />
           <span className="absolute right-0 bottom-0 size-1.5 translate-x-1/2 translate-y-1/2 bg-foreground" />
         </>
       ) : null}
